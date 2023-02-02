@@ -12,9 +12,15 @@ on:
         required: true
       METRICS_TOKEN_PERSONAL:
         required: true
+      CHESS_TOKEN:
+        required: true
       PAGESPEED_TOKEN:
         required: true
       GOOGLE_MAP_TOKEN:
+        required: true
+      SPLATOON_TOKEN:
+        required: true
+      SPLATOON_STATINK_TOKEN:
         required: true
       SPOTIFY_TOKENS:
         required: true
@@ -35,7 +41,7 @@ jobs:
     if: "github.repository == 'lowlighter/metrics'"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Checkout examples
@@ -330,7 +336,7 @@ jobs:
           template: repository
           repo: metrics
           plugin_licenses: yes
-          plugin_licenses_setup: npm ci
+          plugin_licenses_setup: bash -c '[[ -f package.json ]] && npm ci || true'
           output_action: none
           delay: 120
           user: lowlighter
@@ -346,7 +352,7 @@ jobs:
           template: repository
           repo: metrics
           plugin_licenses: yes
-          plugin_licenses_setup: npm ci
+          plugin_licenses_setup: bash -c '[[ -f package.json ]] && npm ci || true'
           plugin_licenses_legal: no
           plugin_licenses_ratio: yes
           output_action: none
@@ -500,27 +506,13 @@ jobs:
           user: lowlighter
           plugins_errors_fatal: yes
         if: ${{ success() || failure() }}
-      - name: 🙋 Introduction - Organization introduction
+      - name: 💝 GitHub Sponsorships - 💝 GitHub Sponsorships
         uses: lowlighter/metrics@master
         with:
-          filename: metrics.plugin.introduction.svg
-          token: ${{ secrets.METRICS_TOKEN_WITH_SCOPES }}
-          user: github
-          base: header
-          plugin_introduction: yes
-          output_action: none
-          delay: 120
-          plugins_errors_fatal: yes
-        if: ${{ success() || failure() }}
-      - name: 🙋 Introduction - Repository introduction
-        uses: lowlighter/metrics@master
-        with:
-          filename: metrics.plugin.introduction.repository.svg
-          token: ${{ secrets.METRICS_TOKEN }}
-          template: repository
-          repo: metrics
-          base: header
-          plugin_introduction: yes
+          filename: metrics.plugin.sponsorships.svg
+          token: ${{ secrets.METRICS_TOKEN_PERSONAL }}
+          base: ""
+          plugin_sponsorships: yes
           output_action: none
           delay: 120
           user: lowlighter
@@ -764,6 +756,32 @@ jobs:
           plugin_projects: yes
           plugin_projects_repositories: lowlighter/metrics/projects/1
           plugin_projects_descriptions: yes
+          output_action: none
+          delay: 120
+          user: lowlighter
+          plugins_errors_fatal: yes
+        if: ${{ success() || failure() }}
+      - name: 🙋 Introduction - Organization introduction
+        uses: lowlighter/metrics@master
+        with:
+          filename: metrics.plugin.introduction.svg
+          token: ${{ secrets.METRICS_TOKEN_WITH_SCOPES }}
+          user: github
+          base: header
+          plugin_introduction: yes
+          output_action: none
+          delay: 120
+          plugins_errors_fatal: yes
+        if: ${{ success() || failure() }}
+      - name: 🙋 Introduction - Repository introduction
+        uses: lowlighter/metrics@master
+        with:
+          filename: metrics.plugin.introduction.repository.svg
+          token: ${{ secrets.METRICS_TOKEN }}
+          template: repository
+          repo: metrics
+          base: header
+          plugin_introduction: yes
           output_action: none
           delay: 120
           user: lowlighter
@@ -1091,6 +1109,33 @@ jobs:
           user: lowlighter
           plugins_errors_fatal: yes
         if: ${{ success() || failure() }}
+      - name: 🗳️ Leetcode - LeetCode
+        uses: lowlighter/metrics@master
+        with:
+          filename: metrics.plugin.leetcode.svg
+          token: NOT_NEEDED
+          base: ""
+          plugin_leetcode: yes
+          plugin_leetcode_sections: solved, skills, recent
+          output_action: none
+          delay: 120
+          user: lowlighter
+          plugins_errors_fatal: yes
+        if: ${{ success() || failure() }}
+      - name: ♟️ Chess - Last chess game from lichess.org
+        uses: lowlighter/metrics@master
+        with:
+          filename: metrics.plugin.chess.svg
+          token: NOT_NEEDED
+          base: ""
+          plugin_chess: yes
+          plugin_chess_token: ${{ secrets.CHESS_TOKEN }}
+          plugin_chess_platform: lichess.org
+          output_action: none
+          delay: 120
+          user: lowlighter
+          plugins_errors_fatal: yes
+        if: ${{ success() || failure() }}
       - name: 🥠 Fortune - Fortune
         uses: lowlighter/metrics@master
         with:
@@ -1277,7 +1322,7 @@ jobs:
         if: ${{ success() || failure() }}
         run: |
           set +e
-          rm -rf /metrics_renders/metrics.markdown*.{md,pdf}
+          sudo rm -rf /metrics_renders/github-metrics.*
           sudo mv /metrics_renders/* ./
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
@@ -1297,7 +1342,7 @@ jobs:
     if: "github.repository == 'lowlighter/metrics'"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Checkout examples
@@ -1357,10 +1402,10 @@ jobs:
         if: ${{ success() || failure() }}
         run: |
           set +e
-          sudo mv /metrics_renders/* ./
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git pull
+          sudo cp /metrics_renders/* ./
           git add --all
           git commit -m "chore: update examples"
           git push --force

@@ -101,8 +101,8 @@
     "people":{
       "enabled": false,                 "//": "Enable people plugin"
     },
-    "introduction":{
-      "enabled": false,                 "//": "Enable introduction plugin"
+    "sponsorships":{
+      "enabled": false,                 "//": "Enable sponsorships plugin"
     },
     "sponsors":{
       "enabled": false,                 "//": "Enable sponsors plugin"
@@ -140,6 +140,9 @@
     "projects":{
       "enabled": false,                 "//": "Enable projects plugin"
     },
+    "introduction":{
+      "enabled": false,                 "//": "Enable introduction plugin"
+    },
     "skyline":{
       "enabled": false,                 "//": "Enable skyline plugin"
     },
@@ -174,6 +177,13 @@
       "token": "WakaTime API token",
       "enabled": false,                 "//": "Enable wakatime plugin"
     },
+    "leetcode":{
+      "enabled": false,                 "//": "Enable leetcode plugin"
+    },
+    "chess":{
+      "token": "Chess platform token",
+      "enabled": false,                 "//": "Enable chess plugin"
+    },
     "fortune":{
       "enabled": false,                 "//": "Enable fortune plugin"
     },
@@ -186,6 +196,11 @@
     },
     "screenshot":{
       "enabled": false,                 "//": "Enable screenshot plugin"
+    },
+    "splatoon":{
+      "token": "Splatnet token",
+      "statink.token": null,            "//": "stat.ink token",
+      "enabled": false,                 "//": "Enable splatoon plugin"
     },
     "stock":{
       "token": "Yahoo Finance token",

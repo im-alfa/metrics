@@ -29,6 +29,7 @@ Plugins provide additional content and lets you customize rendered metrics.
   * [📓 Featured repositories <sub>`repositories`</sub>](/source/plugins/repositories/README.md)
   * [🌇 GitHub Skyline <sub>`skyline`</sub>](/source/plugins/skyline/README.md)
   * [💕 GitHub Sponsors <sub>`sponsors`</sub>](/source/plugins/sponsors/README.md)
+  * [💝 GitHub Sponsorships <sub>`sponsorships`</sub>](/source/plugins/sponsorships/README.md)
   * [✨ Stargazers <sub>`stargazers`</sub>](/source/plugins/stargazers/README.md)
   * [💫 Star lists <sub>`starlists`</sub>](/source/plugins/starlists/README.md)
   * [🌟 Recently starred repositories <sub>`stars`</sub>](/source/plugins/stars/README.md)
@@ -37,6 +38,7 @@ Plugins provide additional content and lets you customize rendered metrics.
   * [🧮 Repositories traffic <sub>`traffic`</sub>](/source/plugins/traffic/README.md)
 * **Social plugins**
   * [🌸 Anilist watch list and reading list <sub>`anilist`</sub>](/source/plugins/anilist/README.md)
+  * [🗳️ Leetcode <sub>`leetcode`</sub>](/source/plugins/leetcode/README.md)
   * [🎼 Music activity and suggestions <sub>`music`</sub>](/source/plugins/music/README.md)
   * [⏱️ Google PageSpeed <sub>`pagespeed`</sub>](/source/plugins/pagespeed/README.md)
   * [✒️ Recent posts <sub>`posts`</sub>](/source/plugins/posts/README.md)
@@ -47,9 +49,11 @@ Plugins provide additional content and lets you customize rendered metrics.
 
 **🎲 Maintained by community**
 * **[Community plugins](/source/plugins/community/README.md)**
+  * [♟️ Chess <sub>`chess`</sub>](/source/plugins/community/chess/README.md) by [@lowlighter](https://github.com/lowlighter)
   * [🥠 Fortune <sub>`fortune`</sub>](/source/plugins/community/fortune/README.md) by [@lowlighter](https://github.com/lowlighter)
   * [💉 Nightscout <sub>`nightscout`</sub>](/source/plugins/community/nightscout/README.md) by [@legoandmars](https://github.com/legoandmars)
   * [💩 PoopMap plugin <sub>`poopmap`</sub>](/source/plugins/community/poopmap/README.md) by [@matievisthekat](https://github.com/matievisthekat)
   * [📸 Website screenshot <sub>`screenshot`</sub>](/source/plugins/community/screenshot/README.md) by [@lowlighter](https://github.com/lowlighter)
+  * [🦑 Splatoon <sub>`splatoon`</sub>](/source/plugins/community/splatoon/README.md) by [@lowlighter](https://github.com/lowlighter)
   * [💹 Stock prices <sub>`stock`</sub>](/source/plugins/community/stock/README.md) by [@lowlighter](https://github.com/lowlighter)
 

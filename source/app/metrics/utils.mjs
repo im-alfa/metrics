@@ -1,15 +1,16 @@
 //Imports
 import octicons from "@primer/octicons"
+import twemojis from "@twemoji/parser"
 import axios from "axios"
 import processes from "child_process"
 import crypto from "crypto"
 import { minify as csso } from "csso"
 import * as d3 from "d3"
-import D3node from "d3-node"
 import emoji from "emoji-name-map"
 import { fileTypeFromBuffer } from "file-type"
 import fss from "fs"
 import fs from "fs/promises"
+import { JSDOM } from "jsdom"
 import linguist from "linguist-js"
 import { marked } from "marked"
 import minimatch from "minimatch"
@@ -23,19 +24,17 @@ import prism_lang from "prismjs/components/index.js"
 import _puppeteer from "puppeteer"
 import purgecss from "purgecss"
 import readline from "readline"
-import rss from "rss-parser"
 import htmlsanitize from "sanitize-html"
 import sharp from "sharp"
 import git from "simple-git"
 import SVGO from "svgo"
-import twemojis from "twemoji-parser"
 import url from "url"
 import util from "util"
 import xmlformat from "xml-formatter"
 prism_lang()
 
 //Exports
-export { axios, d3, D3node, emoji, fetch, fs, git, minimatch, opengraph, os, paths, processes, rss, sharp, url, util }
+export { axios, d3, emoji, fetch, fs, git, minimatch, opengraph, os, paths, processes, sharp, url, util }
 
 /**Returns module __dirname */
 export function __module(module) {
@@ -53,6 +52,7 @@ export const puppeteer = {
     })
   },
   headless: true,
+  events: ["load", "domcontentloaded", "networkidle2"],
 }
 
 /**Plural formatter */
@@ -225,17 +225,19 @@ export async function language({filename, patch}) {
 }
 
 /**Run command (use this to execute commands and process whole output at once, may not be suitable for large outputs) */
-export async function run(command, options, {prefixed = true, log = true} = {}) {
+export async function run(command, options, {prefixed = true, log = true, debug = true} = {}) {
   const prefix = {win32: "wsl"}[process.platform] ?? ""
   command = `${prefixed ? prefix : ""} ${command}`.trim()
   return new Promise((solve, reject) => {
-    console.debug(`metrics/command/run > ${command}`)
+    if (debug)
+      console.debug(`metrics/command/run > ${command}`)
     const child = processes.exec(command, options)
     let [stdout, stderr] = ["", ""]
     child.stdout.on("data", data => stdout += data)
     child.stderr.on("data", data => stderr += data)
     child.on("close", code => {
-      console.debug(`metrics/command/run > ${command} > exited with code ${code}`)
+      if (debug)
+        console.debug(`metrics/command/run > ${command} > exited with code ${code}`)
       if (log) {
         console.debug(stdout)
         console.debug(stderr)
@@ -246,7 +248,7 @@ export async function run(command, options, {prefixed = true, log = true} = {}) 
 }
 
 /**Spawn command (use this to execute commands and process output on the fly) */
-export async function spawn(command, args = [], options = {}, {prefixed = true, timeout = 300 * 1000, stdout} = {}) { //eslint-disable-line max-params
+export async function spawn(command, args = [], options = {}, {prefixed = true, timeout = 300 * 1000, stdout, debug = true} = {}) { //eslint-disable-line max-params
   const prefix = {win32: "wsl"}[process.platform] ?? ""
   if ((prefixed) && (prefix)) {
     args.unshift(command)
@@ -255,15 +257,18 @@ export async function spawn(command, args = [], options = {}, {prefixed = true, 
   if (!stdout)
     throw new Error("`stdout` argument was not provided, use run() instead of spawn() if processing output is not needed")
   return new Promise((solve, reject) => {
-    console.debug(`metrics/command/spawn > ${command} with ${args.join(" ")}`)
+    if (debug)
+      console.debug(`metrics/command/spawn > ${command} with ${args.join(" ")}`)
     const child = processes.spawn(command, args, {...options, shell: true, timeout})
     const reader = readline.createInterface({input: child.stdout})
     reader.on("line", stdout)
     const closed = new Promise(close => reader.on("close", close))
     child.on("close", async code => {
-      console.debug(`metrics/command/spawn > ${command} with ${args.join(" ")} > exited with code ${code}`)
+      if (debug)
+        console.debug(`metrics/command/spawn > ${command} with ${args.join(" ")} > exited with code ${code}`)
       await closed
-      console.debug(`metrics/command/spawn > ${command} with ${args.join(" ")} > reader closed`)
+      if (debug)
+        console.debug(`metrics/command/spawn > ${command} with ${args.join(" ")} > reader closed`)
       return code === 0 ? solve() : reject()
     })
   })
@@ -323,58 +328,132 @@ export async function markdown(text, {mode = "inline", codelines = Infinity} = {
   return rendered
 }
 
-/**Check GitHub filter against object */
-export function ghfilter(text, object) {
-  console.debug(`metrics/svg/ghquery > checking ${text} against ${JSON.stringify(object)}`)
-  const result = text.split(/(?<!NOT) /).map(x => x.trim()).filter(x => x).map(criteria => {
-    const [key, filters] = criteria.split(":")
-    const value = object[/^NOT /.test(key) ? key.substring(3).trim() : /^-/.test(key) ? key.substring(1).trim() : key.trim()]
-    console.debug(`metrics/svg/ghquery > checking ${criteria} against ${value}`)
-    if (value === undefined) {
-      console.debug(`metrics/svg/ghquery > value for ${criteria} is undefined, considering it truthy`)
-      return true
-    }
-    return filters?.split(",").map(x => x.trim()).filter(x => x).map(filter => {
-      if (!Number.isFinite(Number(value))) {
-        if (/^NOT /.test(filter))
-          return value !== filter.substring(3).trim()
-        if (/^-/.test(key))
-          return value !== filter
-        return value === filter.trim()
+/**Filters */
+export const filters = {
+  /**GitHub query filter */
+  github(text, object) {
+    console.debug(`metrics/svg/ghquery > checking ${text} against ${JSON.stringify(object)}`)
+    const result = text.split(/(?<!NOT) /).map(x => x.trim()).filter(x => x).map(criteria => {
+      const [key, filters] = criteria.split(":")
+      const value = object[/^NOT /.test(key) ? key.substring(3).trim() : /^-/.test(key) ? key.substring(1).trim() : key.trim()]
+      console.debug(`metrics/svg/ghquery > checking ${criteria} against ${value}`)
+      if (value === undefined) {
+        console.debug(`metrics/svg/ghquery > value for ${criteria} is undefined, considering it truthy`)
+        return true
       }
-      switch (true) {
-        case /^true$/.test(filter):
-          return value === true
-        case /^false$/.test(filter):
-          return value === false
-        case /^>\d+$/.test(filter):
-          return value > Number(filter.substring(1))
-        case /^>=\d+$/.test(filter):
-          return value >= Number(filter.substring(2))
-        case /^<\d+$/.test(filter):
-          return value < Number(filter.substring(1))
-        case /^<=\d+$/.test(filter):
-          return value <= Number(filter.substring(2))
-        case /^\d+$/.test(filter):
-          return value === Number(filter)
-        case /^\d+..\d+$/.test(filter): {
-          const [a, b] = filter.split("..").map(Number)
-          return (value >= a) && (value <= b)
+      return filters?.split(",").map(x => x.trim()).filter(x => x).map(filter => {
+        if (!Number.isFinite(Number(value))) {
+          if (/^NOT /.test(filter))
+            return value !== filter.substring(3).trim()
+          if (/^-/.test(key))
+            return value !== filter
+          return value === filter.trim()
         }
-        default:
-          return false
+        switch (true) {
+          case /^true$/.test(filter):
+            return value === true
+          case /^false$/.test(filter):
+            return value === false
+          case /^>\d+$/.test(filter):
+            return value > Number(filter.substring(1))
+          case /^>=\d+$/.test(filter):
+            return value >= Number(filter.substring(2))
+          case /^<\d+$/.test(filter):
+            return value < Number(filter.substring(1))
+          case /^<=\d+$/.test(filter):
+            return value <= Number(filter.substring(2))
+          case /^\d+$/.test(filter):
+            return value === Number(filter)
+          case /^\d+..\d+$/.test(filter): {
+            const [a, b] = filter.split("..").map(Number)
+            return (value >= a) && (value <= b)
+          }
+          default:
+            return false
+        }
+      }).reduce((a, b) => a || b, false) ?? false
+    }).reduce((a, b) => a && b, true)
+    console.debug(`metrics/svg/ghquery > ${result ? "matching" : "not matching"}`)
+    return result
+  },
+  /**Repository filter*/
+  repo(repository, patterns, {debug = true} = {}) {
+    //Disable filtering when no pattern is provided
+    if (!patterns.length)
+      return true
+
+    //Normalize repository handle
+    let repo, user
+    if (repository.nameWithOwner)
+      repository = repository.nameWithOwner
+    if ((repository.name) && (repository.owner?.login)) {
+      user = repository.owner.login
+      repo = repository.name
+    }
+    user = (user ?? repository.split("/")[0]).toLocaleLowerCase()
+    repo = (repo ?? repository.split("/")[1]).toLocaleLowerCase()
+    const handle = `${user}/${repo}`
+
+    let include = true
+    //Advanced pattern matching
+    if (patterns[0] === "@use.patterns") {
+      if (debug)
+        console.debug(`metrics/filters/repo > ${repo} > using advanced pattern matching`)
+      const options = {nocase: true}
+      for (let pattern of patterns) {
+        if (pattern.startsWith("#"))
+          continue
+        let action = false
+        if ((pattern.startsWith("+")) || (pattern.startsWith("-"))) {
+          action = pattern.charAt(0) === "+"
+          pattern = pattern.substring(1)
+        }
+        if (minimatch(handle, pattern, options)) {
+          if (debug)
+            console.debug(`metrics/filters/repo > ${repo} matches ${action ? "including" : "excluding"} pattern ${pattern}`)
+          include = action
+        }
       }
-    }).reduce((a, b) => a || b, false) ?? false
-  }).reduce((a, b) => a && b, true)
-  console.debug(`metrics/svg/ghquery > ${result ? "matching" : "not matching"}`)
-  return result
+    }
+    //Basic pattern matching
+    else {
+      if (debug)
+        console.debug(`metrics/filters/repo > ${repo} > using basic pattern matching`)
+      include = (!patterns.includes(repo)) && (!patterns.includes(handle))
+    }
+
+    if (debug)
+      console.debug(`metrics/filters/repo > filter ${repo} (${include ? "included" : "excluded"})`)
+    return include
+  },
+  /**Text filter*/
+  text(text, patterns, {debug = true} = {}) {
+    //Disable filtering when no pattern is provided
+    if (!patterns.length)
+      return true
+
+    //Normalize text
+    text = `${text}`.toLocaleLowerCase()
+
+    //Basic pattern matching
+    const include = !patterns.includes(text)
+    if (debug)
+      console.debug(`metrics/filters/text > filter ${text} (${include ? "included" : "excluded"})`)
+    return include
+  },
 }
 
 /**Image to base64 */
 export async function imgb64(image, {width, height, fallback = true} = {}) {
+  //Ignore already encoded-base 64
+  if ((typeof image === "string") && (image.startsWith("data:image/png;base64")))
+    return image
   //Undefined image
   if (!image)
     return fallback ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOcOnfpfwAGfgLYttYINwAAAABJRU5ErkJggg==" : null
+  //SVG image
+  if ((typeof image === "string") && (image.endsWith(".svg")))
+    return `data:image/svg+xml;base64,${Buffer.from(await fetch(image).then(response => response.arrayBuffer())).toString("base64")}`
   //Load image
   let ext = "png"
   try {
@@ -417,7 +496,7 @@ export const svg = {
     console.debug("metrics/svg/pdf > loading svg")
     const page = await svg.resize.browser.newPage()
     page.on("console", ({_text: text}) => console.debug(`metrics/svg/pdf > puppeteer > ${text}`))
-    await page.setContent(`<main class="markdown-body">${rendered}</main>`, {waitUntil: ["load", "domcontentloaded", "networkidle2"]})
+    await page.setContent(`<main class="markdown-body">${rendered}</main>`, {waitUntil: puppeteer.events})
     console.debug("metrics/svg/pdf > loaded svg successfully")
     const margins = (Array.isArray(paddings) ? paddings : paddings.split(",")).join(" ")
     console.debug(`metrics/svg/pdf > margins set to ${margins}`)
@@ -462,7 +541,7 @@ export const svg = {
     page
       .on("console", message => console.debug(`metrics/svg/resize > puppeteer > ${message.text()}`))
       .on("pageerror", error => console.debug(`metrics/svg/resize > puppeteer > ${error.message}`))
-    await page.setContent(rendered, {waitUntil: ["load", "domcontentloaded", "networkidle2"]})
+    await page.setContent(rendered, {waitUntil: puppeteer.events})
     console.debug("metrics/svg/resize > loaded svg successfully")
     await page.addStyleTag({content: "body { margin: 0; padding: 0; }"})
     let mime = "image/svg+xml"
@@ -536,7 +615,7 @@ export const svg = {
     }
     //Compute hash
     const page = await svg.resize.browser.newPage()
-    await page.setContent(rendered, {waitUntil: ["load", "domcontentloaded", "networkidle2"]})
+    await page.setContent(rendered, {waitUntil: puppeteer.events})
     const data = await page.evaluate(async () => {
       document.querySelector("footer")?.remove()
       return document.querySelector("svg").outerHTML
@@ -713,4 +792,27 @@ export async function gif({page, width, height, frames, x = 0, y = 0, repeat = t
   const result = await fs.readFile(path, "base64")
   await fs.unlink(path)
   return `data:image/gif;base64,${result}`
+}
+
+/**D3 node wrapper (loosely based on https://github.com/d3-node/d3-node)*/
+export class D3node {
+  constructor() {
+    this.jsdom = new JSDOM()
+    this.document = this.jsdom.window.document
+  }
+
+  get element() {
+    return d3.select(this.document.body)
+  }
+
+  createSVG(width, height) {
+    const svg = this.element.append("svg").attr("xmlns", "http://www.w3.org/2000/svg")
+    if ((width) && (height))
+      svg.attr("width", width).attr("height", height)
+    return svg
+  }
+
+  svgString() {
+    return this.element.select("svg").node()?.outerHTML || ""
+  }
 }

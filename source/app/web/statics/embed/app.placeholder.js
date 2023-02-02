@@ -458,6 +458,26 @@
             },
           })
           : null),
+        //Sponsorships
+        ...(set.plugins.enabled.sponsorships
+          ? ({
+            sponsorships: {
+              sections: options["sponsorships.sections"].split(",").map(x => x.trim()),
+              amount: faker.datatype.number(1000),
+              list: new Array(2 + faker.datatype.number(8)).fill(null).map(_ => ({
+                login: faker.internet.userName(),
+                avatar: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOcOnfpfwAGfgLYttYINwAAAABJRU5ErkJggg==",
+                type: "user",
+                tier: `$${faker.datatype.number(100) * 10} per month`,
+                private: false,
+                past: faker.datatype.boolean(),
+              })),
+              size: Number(options["sponsorships.size"]),
+              image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOcOnfpfwAGfgLYttYINwAAAABJRU5ErkJggg==",
+              started: faker.date.recent(),
+            },
+          })
+          : null),
         //Languages
         ...(set.plugins.enabled.languages
           ? ({
@@ -1012,6 +1032,63 @@
                 artwork: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOcOnfpfwAGfgLYttYINwAAAABJRU5ErkJggg==",
               })),
               sections: options["anilist.sections"].split(",").map(x => x.trim()).filter(x => x),
+            },
+          })
+          : null),
+        //LeetCode
+        ...(set.plugins.enabled.leetcode
+          ? ({
+            leetcode: {
+              user: options["leetcode.user"],
+              sections: options["leetcode.sections"].split(",").map(x => x.trim()).filter(x => x),
+              languages: new Array(6).fill(null).map(_ => ({
+                language: faker.hacker.noun(),
+                solved: faker.datatype.number(200),
+              })),
+              skills: new Array(Number(options["leetcode.limit.skills"]) || 10).fill(null).map(_ => ({
+                name: faker.hacker.noun(),
+                category: faker.helpers.arrayElement(["advanced", "intermediate", "fundamental"]),
+                solved: faker.datatype.number(30),
+              })),
+              problems: {
+                All: {count: 2402, solved: faker.datatype.number(2402)},
+                Easy: {count: 592, solved: faker.datatype.number(592)},
+                Medium: {count: 1283, solved: faker.datatype.number(1283)},
+                Hard: {count: 527, solved: faker.datatype.number(527)},
+              },
+              recent: new Array(Number(options["leetcode.limit.recent"]) || 2).fill(null).map(_ => ({
+                title: faker.lorem.sentence(),
+                date: faker.date.recent(),
+              })),
+            },
+          })
+          : null),
+        //Chess
+        ...(set.plugins.enabled.chess
+          ? ({
+            chess: {
+              platform: options["chess.platform"] || "(chess platform)",
+              meta: {
+                Event: "Casual Correspondence game",
+                Date: faker.date.recent().toISOString().substring(0, 10),
+                White: options["chess.user"],
+                Black: faker.internet.userName(),
+                WhiteElo: faker.datatype.number(3000),
+                BlackElo: faker.datatype.number(3000),
+              },
+              animation: {size: 40, delay: 3, duration: 0.6},
+              result: {
+                white: faker.datatype.number(3),
+                get black() {
+                  return this.white + faker.helpers.arrayElement([-1, +1])
+                },
+              },
+              moves: [
+                {color: "w", piece: "p", from: "f2", to: "f4", san: "f4", flags: "b"},
+                {color: "b", piece: "p", from: "c7", to: "c5", san: "c5", flags: "b"},
+                {color: "w", piece: "p", from: "e2", to: "e4", san: "e4", flags: "b"},
+                {color: "b", piece: "p", from: "d7", to: "d6", san: "d6", flags: "n"},
+              ],
             },
           })
           : null),

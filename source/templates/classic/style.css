@@ -429,6 +429,12 @@
     text-anchor: middle;
     font-weight: 600;
   }
+  .gauge text.secondary {
+    fill: currentColor;
+    font-size: 25px;
+    font-family: monospace;
+    text-anchor: middle;
+  }
   .gauge .title {
     font-size: 18px;
     color: #777777;
@@ -462,6 +468,9 @@
     height: 315px;
     margin: 8px 14px 4px;
     border-radius: 5px;
+  }
+  .screenshot-content {
+    margin-left: 12px;
   }
 
   svg.large .audits {
@@ -1152,6 +1161,17 @@
   .sponsors .avatar {
     margin: 2px;
   }
+  .sponsorships.goal {
+    display: flex;
+    align-items: center;
+  }
+  .sponsorships.goal .bold {
+    font-weight: bold;
+  }
+  .sponsorships.goal img {
+    width: 38px;
+    margin-right: 8px;
+  }
 
 /* Stackoverflow */
   .stackoverflow {
@@ -1336,6 +1356,40 @@
     overflow: hidden;
   }
 
+/* LeetCode */
+  .leetcode.subsection {
+    padding-left: 28px;
+  }
+  .leetcode .topics {
+    margin-left: 20px;
+  }
+  .leetcode .count {
+    font-size: 10px;
+    color: #666666;
+  }
+  .leetcode .fundamental .dot, .leetcode .easy.gauge .gauge-arc {
+    color: #2CBB5D;
+  }
+  .leetcode .intermediate .dot, .leetcode .medium.gauge .gauge-arc {
+    color: #FFC01E;
+  }
+  .leetcode .advanced .dot, .leetcode .hard.gauge .gauge-arc {
+    color: #EF4743;
+  }
+  .leetcode .all.gauge .gauge-arc {
+    color: rgb(255, 161, 22);
+  }
+  .leetcode {
+    align-items: flex-start;
+  }
+  .leetcode .infos {
+    margin-bottom: 3px;
+  }
+  .leetcode .infos .date {
+    font-size: 10px;
+    color: #666666;
+  }
+
 /* Code snippet */
   .snippet .body {
     padding-left: 12px;
@@ -1517,6 +1571,10 @@
     --color-calendar-halloween-graph-day-L2-bg: #ffc501;
     --color-calendar-halloween-graph-day-L3-bg: #fe9600;
     --color-calendar-halloween-graph-day-L4-bg: #03001c;
+    --color-calendar-winter-graph-day-L1-bg: #0a3069;
+    --color-calendar-winter-graph-day-L2-bg: #0969da;
+    --color-calendar-winter-graph-day-L3-bg: #54aeff;
+    --color-calendar-winter-graph-day-L4-bg: #b6e3ff;
     --color-calendar-graph-day-L4-border: rgba(27,31,35,0.06);
     --color-calendar-graph-day-L3-border: rgba(27,31,35,0.06);
     --color-calendar-graph-day-L2-border: rgba(27,31,35,0.06);

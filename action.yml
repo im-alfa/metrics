@@ -18,6 +18,10 @@ inputs:
     description: Show `Available for hire!` in header section
     default: <default-value>
 
+  base_skip:
+    description: Skip base content
+    default: <default-value>
+
   repositories:
     description: Fetched repositories
     default: <default-value>
@@ -309,8 +313,16 @@ inputs:
     description: Indepth mode
     default: <default-value>
 
+  plugin_languages_indepth_custom:
+    description: Indepth mode - Custom repositories
+    default: <default-value>
+
   plugin_languages_analysis_timeout:
     description: Indepth mode - Analysis timeout
+    default: <default-value>
+
+  plugin_languages_analysis_timeout_repositories:
+    description: Indepth mode - Analysis timeout (repositories)
     default: <default-value>
 
   plugin_languages_categories:
@@ -322,11 +334,11 @@ inputs:
     default: <default-value>
 
   plugin_languages_recent_load:
-    description: Events to load (recently-used section)
+    description: Indepth mode - Events to load (recently-used section)
     default: <default-value>
 
   plugin_languages_recent_days:
-    description: Events maximum age (day, recently-used section)
+    description: Indepth mode - Events maximum age (day, recently-used section)
     default: <default-value>
 
   # ====================================================================================
@@ -600,14 +612,18 @@ inputs:
     default: <default-value>
 
   # ====================================================================================
-  # 🙋 Introduction
+  # 💝 GitHub Sponsorships
 
-  plugin_introduction:
-    description: Enable introduction plugin
+  plugin_sponsorships:
+    description: Enable sponsorships plugin
     default: <default-value>
 
-  plugin_introduction_title:
-    description: Section title
+  plugin_sponsorships_sections:
+    description: Displayed sections
+    default: <default-value>
+
+  plugin_sponsorships_size:
+    description: Profile picture display size
     default: <default-value>
 
   # ====================================================================================
@@ -704,6 +720,14 @@ inputs:
 
   plugin_starlists_limit_languages:
     description: Display limit (languages per star list)
+    default: <default-value>
+
+  plugin_starlists_languages_ignored:
+    description: Ignored languages in star lists
+    default: <default-value>
+
+  plugin_starlists_languages_aliases:
+    description: Custom languages names in star lists
     default: <default-value>
 
   plugin_starlists_shuffle_repositories:
@@ -900,6 +924,17 @@ inputs:
 
   plugin_projects_descriptions:
     description: Projects descriptions
+    default: <default-value>
+
+  # ====================================================================================
+  # 🙋 Introduction
+
+  plugin_introduction:
+    description: Enable introduction plugin
+    default: <default-value>
+
+  plugin_introduction_title:
+    description: Section title
     default: <default-value>
 
   # ====================================================================================
@@ -1173,6 +1208,52 @@ inputs:
     default: <default-value>
 
   # ====================================================================================
+  # 🗳️ Leetcode
+
+  plugin_leetcode:
+    description: Enable leetcode plugin
+    default: <default-value>
+
+  plugin_leetcode_user:
+    description: LeetCode login
+    default: <default-value>
+
+  plugin_leetcode_sections:
+    description: Displayed sections
+    default: <default-value>
+
+  plugin_leetcode_limit_skills:
+    description: Display limit (skills)
+    default: <default-value>
+
+  plugin_leetcode_limit_recent:
+    description: Display limit (recent)
+    default: <default-value>
+
+  # ====================================================================================
+  # ♟️ Chess
+
+  plugin_chess:
+    description: Enable chess plugin
+    default: <default-value>
+
+  plugin_chess_token:
+    description: Chess platform token
+    default: <default-value>
+
+  plugin_chess_user:
+    description: Chess platform login
+    default: <default-value>
+
+  plugin_chess_platform:
+    description: Chess platform
+    default: <default-value>
+
+  plugin_chess_animation:
+    description: Animation settings
+    default: <default-value>
+
+  # ====================================================================================
   # 🥠 Fortune
 
   plugin_fortune:
@@ -1244,8 +1325,55 @@ inputs:
     description: CSS Selector
     default: <default-value>
 
+  plugin_screenshot_mode:
+    description: Output mode
+    default: <default-value>
+
+  plugin_screenshot_viewport:
+    description: Viewport options
+    default: <default-value>
+
+  plugin_screenshot_wait:
+    description: Wait time before taking screenshot (ms)
+    default: <default-value>
+
   plugin_screenshot_background:
     description: Background
+    default: <default-value>
+
+  # ====================================================================================
+  # 🦑 Splatoon
+
+  plugin_splatoon:
+    description: Enable splatoon plugin
+    default: <default-value>
+
+  plugin_splatoon_token:
+    description: Splatnet token
+    default: <default-value>
+
+  plugin_splatoon_sections:
+    description: Displayed sections
+    default: <default-value>
+
+  plugin_splatoon_versus_limit:
+    description: Display limit (Versus)
+    default: <default-value>
+
+  plugin_splatoon_salmon_limit:
+    description: Display limit (Salmon run)
+    default: <default-value>
+
+  plugin_splatoon_statink:
+    description: stat.ink integration
+    default: <default-value>
+
+  plugin_splatoon_statink_token:
+    description: stat.ink token
+    default: <default-value>
+
+  plugin_splatoon_source:
+    description: Source
     default: <default-value>
 
   # ====================================================================================
@@ -1276,7 +1404,7 @@ inputs:
 # Action metadata
 name: Metrics embed
 author: lowlighter
-description: An infographics generator with 40+ plugins and 200+ options to display stats about your GitHub account!
+description: An infographics generator with 40+ plugins and 300+ options to display stats about your GitHub account!
 branding:
   icon: user-check
   color: gray-dark

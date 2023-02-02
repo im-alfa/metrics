@@ -38,11 +38,28 @@ export default async function metrics({login, q}, {graphql, rest, plugins, conf,
         }
         : null),
     }
+    const {"debug.flags": dflags, "experimental.features": _experimental, "config.order": _partials} = imports.metadata.plugins.core.inputs({account: "bypass", q})
     const extras = {css: imports.metadata.plugins.core.extras("extras_css", {...conf.settings, error: false}) ? q["extras.css"] ?? "" : "", js: imports.metadata.plugins.core.extras("extras_js", {...conf.settings, error: false}) ? q["extras.js"] ?? "" : ""}
     const data = {q, animated: true, large: false, base: {}, config: {}, errors: [], warnings, plugins: {}, computed: {}, extras, postscripts: []}
-    const experimental = new Set(decodeURIComponent(q["experimental.features"] ?? "").split(" ").map(x => x.trim().toLocaleLowerCase()).filter(x => x))
-    if (conf.settings["debug.headless"])
+    const experimental = new Set(_experimental)
+    if (conf.settings["debug.headless"]) {
       imports.puppeteer.headless = false
+      console.debug(`metrics/compute/${login} > disabled puppeteer headless mode`)
+    }
+    if ((conf.settings.debug) || (process.env.GITHUB_ACTIONS)) {
+      if (dflags.includes("--puppeteer-disable-headless")) {
+        imports.puppeteer.headless = false
+        console.debug(`metrics/compute/${login} > disabled puppeteer headless mode`)
+      }
+      if (dflags.includes("--puppeteer-debug")) {
+        process.env.DEBUG = "puppeteer:*"
+        console.debug(`metrics/compute/${login} > enabled puppeteer debugging`)
+      }
+      if (dflags.find(flag => flag.startsWith("--puppeteer-wait-"))) {
+        imports.puppeteer.events = dflags.filter(flag => flag.startsWith("--puppeteer-wait-")).map(flag => flag.replace("--puppeteer-wait-", ""))
+        console.debug(`metrics/compute/${login} > overridden puppeteer wait events [${imports.puppeteer.events}]`)
+      }
+    }
 
     //Metrics insights
     if (convert === "insights")
@@ -51,7 +68,7 @@ export default async function metrics({login, q}, {graphql, rest, plugins, conf,
     //Partial parts
     {
       data.partials = new Set([
-        ...decodeURIComponent(q["config.order"] ?? "").split(",").map(x => x.trim().toLocaleLowerCase()).filter(partial => partials.includes(partial)),
+        ..._partials.filter(partial => partials.includes(partial)),
         ...partials,
       ])
       console.debug(`metrics/compute/${login} > content order : ${[...data.partials]}`)
@@ -143,7 +160,7 @@ export default async function metrics({login, q}, {graphql, rest, plugins, conf,
         const warnings = []
         if ((!Object.keys(Plugins).filter(key => q[key]).length) && (!parts.length))
           warnings.push({warning: {message: "No plugin were selected"}})
-        const ineffective = Object.keys(q).filter(key => (key.includes(".")) && (key.split(".").at(0) !== "base") && (key.split(".").at(0) in Plugins)).filter(key => !q[key.split(".").at(0)])
+        const ineffective = Object.keys(q).filter(key => (key.includes(".")) && (key.split(".").at(0) !== "base") && (!(key in imports.metadata.plugins.base.inputs)) && (key.split(".").at(0) in Plugins)).filter(key => !q[key.split(".").at(0)])
         warnings.push(...ineffective.map(key => ({warning: {message: `"${key}" has no effect because "${key.split(".").at(0)}: true" is not set`}})))
         //Compute rendering
         const {rendered} = await metrics({login, q}, {...arguments[1], convert: ["svg", "png", "jpeg"].includes(q["config.output"]) ? q["config.output"] : null, warnings}, arguments[2])
