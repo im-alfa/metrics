@@ -12,9 +12,26 @@ class APIError extends Error {
     }
 }
 const AGENT_NAME = "s3si.ts";
-const S3SI_VERSION = "0.2.4";
-const NSOAPP_VERSION = "2.4.0";
-const WEB_VIEW_VERSION = "2.0.0-bd36a652";
+const S3SI_VERSION = "0.4.5";
+const NSOAPP_VERSION = "2.6.0";
+const WEB_VIEW_VERSION = "4.0.0-d5178440";
+var Queries;
+(function(Queries) {
+    Queries["HomeQuery"] = "7dcc64ea27a08e70919893a0d3f70871";
+    Queries["LatestBattleHistoriesQuery"] = "0d90c7576f1916469b2ae69f64292c02";
+    Queries["RegularBattleHistoriesQuery"] = "3baef04b095ad8975ea679d722bc17de";
+    Queries["BankaraBattleHistoriesQuery"] = "0438ea6978ae8bd77c5d1250f4f84803";
+    Queries["XBattleHistoriesQuery"] = "6796e3cd5dc3ebd51864dc709d899fc5";
+    Queries["EventBattleHistoriesQuery"] = "9744fcf676441873c7c8a51285b6aa4d";
+    Queries["PrivateBattleHistoriesQuery"] = "8e5ae78b194264a6c230e262d069bd28";
+    Queries["VsHistoryDetailQuery"] = "9ee0099fbe3d8db2a838a75cf42856dd";
+    Queries["CoopHistoryQuery"] = "91b917becd2fa415890f5b47e15ffb15";
+    Queries["CoopHistoryDetailQuery"] = "379f0d9b78b531be53044bcac031b34b";
+    Queries["myOutfitCommonDataFilteringConditionQuery"] = "d02ab22c9dccc440076055c8baa0fa7a";
+    Queries["myOutfitCommonDataEquipmentsQuery"] = "d29cd0c2b5e6bac90dd5b817914832f8";
+    Queries["HistoryRecordQuery"] = "d9246baf077b2a29b5f7aac321810a77";
+    Queries["ConfigureAnalyticsQuery"] = "f8ae00773cc412a50dd41a6d9a159ddd";
+})(Queries || (Queries = {}));
 const S3SI_LINK = "https://github.com/spacemeowx2/s3si.ts";
 const USERAGENT = `${AGENT_NAME}/${S3SI_VERSION} (${S3SI_LINK})`;
 const DEFAULT_APP_USER_AGENT = "Mozilla/5.0 (Linux; Android 11; Pixel 5) " + "AppleWebKit/537.36 (KHTML, like Gecko) " + "Chrome/94.0.4606.61 Mobile Safari/537.36";
@@ -29,7 +46,7 @@ const SPLATNET3_STATINK_MAP = {
         LOFT: "yagura",
         GOAL: "hoko",
         CLAM: "asari",
-        TRI_COLOR: "nawabari"
+        TRI_COLOR: "tricolor"
     },
     RESULT: {
         WIN: "win",
@@ -53,15 +70,6 @@ const SPLATNET3_STATINK_MAP = {
         6: "cohock_charge",
         7: "giant_tornado",
         8: "mudmouth_eruption"
-    },
-    COOP_UNIFORM_MAP: {
-        1: "orange",
-        2: "green",
-        3: "yellow",
-        4: "pink",
-        5: "blue",
-        6: "black",
-        7: "white"
     },
     COOP_SPECIAL_MAP: {
         "bd327d1b64372dedefd32adb28bea62a5b6152d93aada5d9fc4f669a1955d6d4": "nicedama",
@@ -748,19 +756,19 @@ function parse(args, { "--": doubleDash = false , alias ={} , boolean: __boolean
     }
     const aliases = {};
     if (alias !== undefined) {
-        for(const key1 in alias){
-            const val = getForce(alias, key1);
+        for(const key in alias){
+            const val = getForce(alias, key);
             if (typeof val === "string") {
-                aliases[key1] = [
+                aliases[key] = [
                     val
                 ];
             } else {
-                aliases[key1] = val;
+                aliases[key] = val;
             }
-            for (const alias1 of getForce(aliases, key1)){
-                aliases[alias1] = [
-                    key1
-                ].concat(aliases[key1].filter((y)=>alias1 !== y));
+            for (const alias of getForce(aliases, key)){
+                aliases[alias] = [
+                    key
+                ].concat(aliases[key].filter((y)=>alias !== y));
             }
         }
     }
@@ -768,11 +776,11 @@ function parse(args, { "--": doubleDash = false , alias ={} , boolean: __boolean
         const stringArgs = typeof string === "string" ? [
             string
         ] : string;
-        for (const key2 of stringArgs.filter(Boolean)){
-            flags.strings[key2] = true;
-            const alias2 = get(aliases, key2);
-            if (alias2) {
-                for (const al of alias2){
+        for (const key of stringArgs.filter(Boolean)){
+            flags.strings[key] = true;
+            const alias = get(aliases, key);
+            if (alias) {
+                for (const al of alias){
                     flags.strings[al] = true;
                 }
             }
@@ -782,12 +790,12 @@ function parse(args, { "--": doubleDash = false , alias ={} , boolean: __boolean
         const collectArgs = typeof collect === "string" ? [
             collect
         ] : collect;
-        for (const key3 of collectArgs.filter(Boolean)){
-            flags.collect[key3] = true;
-            const alias3 = get(aliases, key3);
-            if (alias3) {
-                for (const al1 of alias3){
-                    flags.collect[al1] = true;
+        for (const key of collectArgs.filter(Boolean)){
+            flags.collect[key] = true;
+            const alias = get(aliases, key);
+            if (alias) {
+                for (const al of alias){
+                    flags.collect[al] = true;
                 }
             }
         }
@@ -796,12 +804,12 @@ function parse(args, { "--": doubleDash = false , alias ={} , boolean: __boolean
         const negatableArgs = typeof negatable === "string" ? [
             negatable
         ] : negatable;
-        for (const key4 of negatableArgs.filter(Boolean)){
-            flags.negatable[key4] = true;
-            const alias4 = get(aliases, key4);
-            if (alias4) {
-                for (const al2 of alias4){
-                    flags.negatable[al2] = true;
+        for (const key of negatableArgs.filter(Boolean)){
+            flags.negatable[key] = true;
+            const alias = get(aliases, key);
+            if (alias) {
+                for (const al of alias){
+                    flags.negatable[al] = true;
                 }
             }
         }
@@ -864,47 +872,47 @@ function parse(args, { "--": doubleDash = false , alias ={} , boolean: __boolean
         if (/^--.+=/.test(arg)) {
             const m = arg.match(/^--([^=]+)=(.*)$/s);
             assert(m != null);
-            const [, key5, value] = m;
-            if (flags.bools[key5]) {
+            const [, key, value] = m;
+            if (flags.bools[key]) {
                 const booleanValue = value !== "false";
-                setArg(key5, booleanValue, arg);
+                setArg(key, booleanValue, arg);
             } else {
-                setArg(key5, value, arg);
+                setArg(key, value, arg);
             }
         } else if (/^--no-.+/.test(arg) && get(flags.negatable, arg.replace(/^--no-/, ""))) {
-            const m1 = arg.match(/^--no-(.+)/);
-            assert(m1 != null);
-            setArg(m1[1], false, arg, false);
+            const m = arg.match(/^--no-(.+)/);
+            assert(m != null);
+            setArg(m[1], false, arg, false);
         } else if (/^--.+/.test(arg)) {
-            const m2 = arg.match(/^--(.+)/);
-            assert(m2 != null);
-            const [, key6] = m2;
+            const m = arg.match(/^--(.+)/);
+            assert(m != null);
+            const [, key] = m;
             const next = args[i + 1];
-            if (next !== undefined && !/^-/.test(next) && !get(flags.bools, key6) && !flags.allBools && (get(aliases, key6) ? !aliasIsBoolean(key6) : true)) {
-                setArg(key6, next, arg);
+            if (next !== undefined && !/^-/.test(next) && !get(flags.bools, key) && !flags.allBools && (get(aliases, key) ? !aliasIsBoolean(key) : true)) {
+                setArg(key, next, arg);
                 i++;
             } else if (/^(true|false)$/.test(next)) {
-                setArg(key6, next === "true", arg);
+                setArg(key, next === "true", arg);
                 i++;
             } else {
-                setArg(key6, get(flags.strings, key6) ? "" : true, arg);
+                setArg(key, get(flags.strings, key) ? "" : true, arg);
             }
         } else if (/^-[^-]+/.test(arg)) {
             const letters = arg.slice(1, -1).split("");
             let broken = false;
             for(let j = 0; j < letters.length; j++){
-                const next1 = arg.slice(j + 2);
-                if (next1 === "-") {
-                    setArg(letters[j], next1, arg);
+                const next = arg.slice(j + 2);
+                if (next === "-") {
+                    setArg(letters[j], next, arg);
                     continue;
                 }
-                if (/[A-Za-z]/.test(letters[j]) && /=/.test(next1)) {
-                    setArg(letters[j], next1.split(/=(.+)/)[1], arg);
+                if (/[A-Za-z]/.test(letters[j]) && /=/.test(next)) {
+                    setArg(letters[j], next.split(/=(.+)/)[1], arg);
                     broken = true;
                     break;
                 }
-                if (/[A-Za-z]/.test(letters[j]) && /-?\d+(\.\d*)?(e-?\d+)?$/.test(next1)) {
-                    setArg(letters[j], next1, arg);
+                if (/[A-Za-z]/.test(letters[j]) && /-?\d+(\.\d*)?(e-?\d+)?$/.test(next)) {
+                    setArg(letters[j], next, arg);
                     broken = true;
                     break;
                 }
@@ -916,16 +924,16 @@ function parse(args, { "--": doubleDash = false , alias ={} , boolean: __boolean
                     setArg(letters[j], get(flags.strings, letters[j]) ? "" : true, arg);
                 }
             }
-            const [key7] = arg.slice(-1);
-            if (!broken && key7 !== "-") {
-                if (args[i + 1] && !/^(-|--)[^-]/.test(args[i + 1]) && !get(flags.bools, key7) && (get(aliases, key7) ? !aliasIsBoolean(key7) : true)) {
-                    setArg(key7, args[i + 1], arg);
+            const [key] = arg.slice(-1);
+            if (!broken && key !== "-") {
+                if (args[i + 1] && !/^(-|--)[^-]/.test(args[i + 1]) && !get(flags.bools, key) && (get(aliases, key) ? !aliasIsBoolean(key) : true)) {
+                    setArg(key, args[i + 1], arg);
                     i++;
                 } else if (args[i + 1] && /^(true|false)$/.test(args[i + 1])) {
-                    setArg(key7, args[i + 1] === "true", arg);
+                    setArg(key, args[i + 1] === "true", arg);
                     i++;
                 } else {
-                    setArg(key7, get(flags.strings, key7) ? "" : true, arg);
+                    setArg(key, get(flags.strings, key) ? "" : true, arg);
                 }
             }
         } else {
@@ -938,35 +946,35 @@ function parse(args, { "--": doubleDash = false , alias ={} , boolean: __boolean
             }
         }
     }
-    for (const [key8, value1] of Object.entries(defaults)){
-        if (!hasKey(argv, key8.split("."))) {
-            setKey(argv, key8, value1);
-            if (aliases[key8]) {
-                for (const x of aliases[key8]){
-                    setKey(argv, x, value1);
+    for (const [key, value] of Object.entries(defaults)){
+        if (!hasKey(argv, key.split("."))) {
+            setKey(argv, key, value);
+            if (aliases[key]) {
+                for (const x of aliases[key]){
+                    setKey(argv, x, value);
                 }
             }
         }
     }
-    for (const key9 of Object.keys(flags.bools)){
-        if (!hasKey(argv, key9.split("."))) {
-            const value2 = get(flags.collect, key9) ? [] : false;
-            setKey(argv, key9, value2, false);
+    for (const key of Object.keys(flags.bools)){
+        if (!hasKey(argv, key.split("."))) {
+            const value = get(flags.collect, key) ? [] : false;
+            setKey(argv, key, value, false);
         }
     }
-    for (const key10 of Object.keys(flags.strings)){
-        if (!hasKey(argv, key10.split(".")) && get(flags.collect, key10)) {
-            setKey(argv, key10, [], false);
+    for (const key of Object.keys(flags.strings)){
+        if (!hasKey(argv, key.split(".")) && get(flags.collect, key)) {
+            setKey(argv, key, [], false);
         }
     }
     if (doubleDash) {
         argv["--"] = [];
-        for (const key11 of notFlags){
-            argv["--"].push(key11);
+        for (const key of notFlags){
+            argv["--"].push(key);
         }
     } else {
-        for (const key12 of notFlags){
-            argv._.push(key12);
+        for (const key of notFlags){
+            argv._.push(key);
         }
     }
     return argv;
@@ -1011,9 +1019,9 @@ class BytesList {
             chunk.start += diff;
         }
         let offset = 0;
-        for (const chunk1 of this.#chunks){
-            chunk1.offset = offset;
-            offset += chunk1.end - chunk1.start;
+        for (const chunk of this.#chunks){
+            chunk.offset = offset;
+            offset += chunk.end - chunk.start;
         }
         this.#len = offset;
     }
@@ -1099,9 +1107,9 @@ function concat(...buf) {
     }
     const output = new Uint8Array(length);
     let index = 0;
-    for (const b1 of buf){
-        output.set(b1, index);
-        index += b1.length;
+    for (const b of buf){
+        output.set(b, index);
+        index += b.length;
     }
     return output;
 }
@@ -1252,13 +1260,13 @@ const MIN_BUF_SIZE = 16;
 const CR = "\r".charCodeAt(0);
 const LF = "\n".charCodeAt(0);
 class BufferFullError extends Error {
+    partial;
     name;
     constructor(partial){
         super("Buffer full");
         this.partial = partial;
         this.name = "BufferFullError";
     }
-    partial;
 }
 class PartialReadError extends Error {
     name = "PartialReadError";
@@ -1324,10 +1332,10 @@ class BufReader {
         if (p.byteLength === 0) return rr;
         if (this.#r === this.#w) {
             if (p.byteLength >= this.#buf.byteLength) {
-                const rr1 = await this.#rd.read(p);
-                const nread = rr1 ?? 0;
+                const rr = await this.#rd.read(p);
+                const nread = rr ?? 0;
                 assert(nread >= 0, "negative read");
-                return rr1;
+                return rr;
             }
             this.#r = 0;
             this.#w = 0;
@@ -1762,6 +1770,8 @@ class MultiReader {
     }
 }
 class LimitedReader {
+    reader;
+    limit;
     constructor(reader, limit){
         this.reader = reader;
         this.limit = limit;
@@ -1780,8 +1790,6 @@ class LimitedReader {
         this.limit -= n;
         return n;
     }
-    reader;
-    limit;
 }
 const DEFAULT_BUFFER_SIZE = 32 * 1024;
 async function copyN(r, dest, size) {
@@ -1845,6 +1853,7 @@ function sliceLongToBytes(d, dest = Array.from({
 }
 const decoder = new TextDecoder();
 class StringWriter {
+    base;
     #chunks;
     #byteLength;
     #cache;
@@ -1878,7 +1887,6 @@ class StringWriter {
         this.#cache = decoder.decode(buf);
         return this.#cache;
     }
-    base;
 }
 const mod2 = {
     copyN: copyN,
@@ -2120,14 +2128,14 @@ function utf8DecodeJs(bytes, inputOffset, byteLength) {
             const byte2 = bytes[offset++] & 0x3f;
             units.push((byte1 & 0x1f) << 6 | byte2);
         } else if ((byte1 & 0xf0) === 0xe0) {
-            const byte21 = bytes[offset++] & 0x3f;
+            const byte2 = bytes[offset++] & 0x3f;
             const byte3 = bytes[offset++] & 0x3f;
-            units.push((byte1 & 0x1f) << 12 | byte21 << 6 | byte3);
+            units.push((byte1 & 0x1f) << 12 | byte2 << 6 | byte3);
         } else if ((byte1 & 0xf8) === 0xf0) {
-            const byte22 = bytes[offset++] & 0x3f;
-            const byte31 = bytes[offset++] & 0x3f;
+            const byte2 = bytes[offset++] & 0x3f;
+            const byte3 = bytes[offset++] & 0x3f;
             const byte4 = bytes[offset++] & 0x3f;
-            let unit = (byte1 & 0x07) << 0x12 | byte22 << 0x0c | byte31 << 0x06 | byte4;
+            let unit = (byte1 & 0x07) << 0x12 | byte2 << 0x0c | byte3 << 0x06 | byte4;
             if (unit > 0xffff) {
                 unit -= 0x10000;
                 units.push(unit >>> 10 & 0x3ff | 0xd800);
@@ -2153,12 +2161,12 @@ function utf8DecodeTD(bytes, inputOffset, byteLength) {
     return sharedTextDecoder.decode(stringBytes);
 }
 class ExtData {
+    type;
+    data;
     constructor(type, data){
         this.type = type;
         this.data = data;
     }
-    type;
-    data;
 }
 function setUint64(view, offset, value) {
     const high = value / 0x1_0000_0000;
@@ -2195,18 +2203,18 @@ function encodeTimeSpecToTimestamp({ sec , nsec  }) {
         } else {
             const secHigh = sec / 0x100000000;
             const secLow = sec & 0xffffffff;
-            const rv1 = new Uint8Array(8);
-            const view1 = new DataView(rv1.buffer);
-            view1.setUint32(0, nsec << 2 | secHigh & 0x3);
-            view1.setUint32(4, secLow);
-            return rv1;
+            const rv = new Uint8Array(8);
+            const view = new DataView(rv.buffer);
+            view.setUint32(0, nsec << 2 | secHigh & 0x3);
+            view.setUint32(4, secLow);
+            return rv;
         }
     } else {
-        const rv2 = new Uint8Array(12);
-        const view2 = new DataView(rv2.buffer);
-        view2.setUint32(0, nsec);
-        setInt64(view2, 4, sec);
-        return rv2;
+        const rv = new Uint8Array(12);
+        const view = new DataView(rv.buffer);
+        view.setUint32(0, nsec);
+        setInt64(view, 4, sec);
+        return rv;
     }
 }
 function encodeDateToTimeSpec(date) {
@@ -2242,20 +2250,20 @@ function decodeTimestampToTimeSpec(data) {
             {
                 const nsec30AndSecHigh2 = view.getUint32(0);
                 const secLow32 = view.getUint32(4);
-                const sec1 = (nsec30AndSecHigh2 & 0x3) * 0x100000000 + secLow32;
-                const nsec1 = nsec30AndSecHigh2 >>> 2;
+                const sec = (nsec30AndSecHigh2 & 0x3) * 0x100000000 + secLow32;
+                const nsec = nsec30AndSecHigh2 >>> 2;
                 return {
-                    sec: sec1,
-                    nsec: nsec1
+                    sec,
+                    nsec
                 };
             }
         case 12:
             {
-                const sec2 = getInt64(view, 4);
-                const nsec2 = view.getUint32(0);
+                const sec = getInt64(view, 4);
+                const nsec = view.getUint32(0);
                 return {
-                    sec: sec2,
-                    nsec: nsec2
+                    sec,
+                    nsec
                 };
             }
         default:
@@ -2302,13 +2310,13 @@ class ExtensionCodec {
                 }
             }
         }
-        for(let i1 = 0; i1 < this.encoders.length; i1++){
-            const encoder1 = this.encoders[i1];
-            if (encoder1 != null) {
-                const data1 = encoder1(object, context);
-                if (data1 != null) {
-                    const type1 = i1;
-                    return new ExtData(type1, data1);
+        for(let i = 0; i < this.encoders.length; i++){
+            const encoder = this.encoders[i];
+            if (encoder != null) {
+                const data = encoder(object, context);
+                if (data != null) {
+                    const type = i;
+                    return new ExtData(type, data);
                 }
             }
         }
@@ -2345,6 +2353,13 @@ function createDataView(buffer) {
     return new DataView(bufferView.buffer, bufferView.byteOffset, bufferView.byteLength);
 }
 class Encoder {
+    extensionCodec;
+    context;
+    maxDepth;
+    initialBufferSize;
+    sortKeys;
+    forceFloat32;
+    ignoreUndefined;
     pos;
     view;
     bytes;
@@ -2482,11 +2497,11 @@ class Encoder {
             utf8EncodeTE(object, this.bytes, this.pos);
             this.pos += byteLength;
         } else {
-            const byteLength1 = utf8Count(object);
-            this.ensureBufferSizeToWrite(maxHeaderSize + byteLength1);
-            this.writeStringHeader(byteLength1);
+            const byteLength = utf8Count(object);
+            this.ensureBufferSizeToWrite(maxHeaderSize + byteLength);
+            this.writeStringHeader(byteLength);
             utf8EncodeJs(object, this.bytes, this.pos);
-            this.pos += byteLength1;
+            this.pos += byteLength;
         }
     }
     encodeObject(object, depth) {
@@ -2654,13 +2669,6 @@ class Encoder {
         setInt64(this.view, this.pos, value);
         this.pos += 8;
     }
-    extensionCodec;
-    context;
-    maxDepth;
-    initialBufferSize;
-    sortKeys;
-    forceFloat32;
-    ignoreUndefined;
 }
 const defaultEncodeOptions = {};
 function encode1(value, options = defaultEncodeOptions) {
@@ -2671,6 +2679,8 @@ function prettyByte(__byte) {
     return `${__byte < 0 ? "-" : ""}0x${Math.abs(__byte).toString(16).padStart(2, "0")}`;
 }
 class CachedKeyDecoder {
+    maxKeyLength;
+    maxLengthPerKey;
     hit;
     miss;
     caches;
@@ -2726,8 +2736,6 @@ class CachedKeyDecoder {
         this.store(slicedCopyOfBytes, value);
         return value;
     }
-    maxKeyLength;
-    maxLengthPerKey;
 }
 var State;
 (function(State) {
@@ -2753,6 +2761,14 @@ const DataViewIndexOutOfBoundsError = (()=>{
 const MORE_DATA = new DataViewIndexOutOfBoundsError("Insufficient data");
 const sharedCachedKeyDecoder = new CachedKeyDecoder();
 class Decoder {
+    extensionCodec;
+    context;
+    maxStrLength;
+    maxBinLength;
+    maxArrayLength;
+    maxMapLength;
+    maxExtLength;
+    keyDecoder;
     totalPos;
     pos;
     view;
@@ -2896,9 +2912,9 @@ class Decoder {
                         object = {};
                     }
                 } else if (headByte < 0xa0) {
-                    const size1 = headByte - 0x90;
-                    if (size1 !== 0) {
-                        this.pushArrayState(size1);
+                    const size = headByte - 0x90;
+                    if (size !== 0) {
+                        this.pushArrayState(size);
                         this.complete();
                         continue DECODE;
                     } else {
@@ -2935,59 +2951,59 @@ class Decoder {
             } else if (headByte === 0xd3) {
                 object = this.readI64();
             } else if (headByte === 0xd9) {
-                const byteLength1 = this.lookU8();
-                object = this.decodeUtf8String(byteLength1, 1);
+                const byteLength = this.lookU8();
+                object = this.decodeUtf8String(byteLength, 1);
             } else if (headByte === 0xda) {
-                const byteLength2 = this.lookU16();
-                object = this.decodeUtf8String(byteLength2, 2);
+                const byteLength = this.lookU16();
+                object = this.decodeUtf8String(byteLength, 2);
             } else if (headByte === 0xdb) {
-                const byteLength3 = this.lookU32();
-                object = this.decodeUtf8String(byteLength3, 4);
+                const byteLength = this.lookU32();
+                object = this.decodeUtf8String(byteLength, 4);
             } else if (headByte === 0xdc) {
-                const size2 = this.readU16();
-                if (size2 !== 0) {
-                    this.pushArrayState(size2);
+                const size = this.readU16();
+                if (size !== 0) {
+                    this.pushArrayState(size);
                     this.complete();
                     continue DECODE;
                 } else {
                     object = [];
                 }
             } else if (headByte === 0xdd) {
-                const size3 = this.readU32();
-                if (size3 !== 0) {
-                    this.pushArrayState(size3);
+                const size = this.readU32();
+                if (size !== 0) {
+                    this.pushArrayState(size);
                     this.complete();
                     continue DECODE;
                 } else {
                     object = [];
                 }
             } else if (headByte === 0xde) {
-                const size4 = this.readU16();
-                if (size4 !== 0) {
-                    this.pushMapState(size4);
+                const size = this.readU16();
+                if (size !== 0) {
+                    this.pushMapState(size);
                     this.complete();
                     continue DECODE;
                 } else {
                     object = {};
                 }
             } else if (headByte === 0xdf) {
-                const size5 = this.readU32();
-                if (size5 !== 0) {
-                    this.pushMapState(size5);
+                const size = this.readU32();
+                if (size !== 0) {
+                    this.pushMapState(size);
                     this.complete();
                     continue DECODE;
                 } else {
                     object = {};
                 }
             } else if (headByte === 0xc4) {
-                const size6 = this.lookU8();
-                object = this.decodeBinary(size6, 1);
+                const size = this.lookU8();
+                object = this.decodeBinary(size, 1);
             } else if (headByte === 0xc5) {
-                const size7 = this.lookU16();
-                object = this.decodeBinary(size7, 2);
+                const size = this.lookU16();
+                object = this.decodeBinary(size, 2);
             } else if (headByte === 0xc6) {
-                const size8 = this.lookU32();
-                object = this.decodeBinary(size8, 4);
+                const size = this.lookU32();
+                object = this.decodeBinary(size, 4);
             } else if (headByte === 0xd4) {
                 object = this.decodeExtension(1, 0);
             } else if (headByte === 0xd5) {
@@ -2999,14 +3015,14 @@ class Decoder {
             } else if (headByte === 0xd8) {
                 object = this.decodeExtension(16, 0);
             } else if (headByte === 0xc7) {
-                const size9 = this.lookU8();
-                object = this.decodeExtension(size9, 1);
+                const size = this.lookU8();
+                object = this.decodeExtension(size, 1);
             } else if (headByte === 0xc8) {
-                const size10 = this.lookU16();
-                object = this.decodeExtension(size10, 2);
+                const size = this.lookU16();
+                object = this.decodeExtension(size, 2);
             } else if (headByte === 0xc9) {
-                const size11 = this.lookU32();
-                object = this.decodeExtension(size11, 4);
+                const size = this.lookU32();
+                object = this.decodeExtension(size, 4);
             } else {
                 throw new Error(`Unrecognized type byte: ${prettyByte(headByte)}`);
             }
@@ -3200,14 +3216,6 @@ class Decoder {
         this.pos += 8;
         return value;
     }
-    extensionCodec;
-    context;
-    maxStrLength;
-    maxBinLength;
-    maxArrayLength;
-    maxMapLength;
-    maxExtLength;
-    keyDecoder;
 }
 const defaultDecodeOptions = {};
 function decode1(buffer, options = defaultDecodeOptions) {
@@ -5051,12 +5059,12 @@ function parseHistoryDetailId(id) {
             uuid
         };
     } else if (coopRE.test(plainText)) {
-        const [, uid1, timestamp1, uuid1] = plainText.match(coopRE);
+        const [, uid, timestamp, uuid] = plainText.match(coopRE);
         return {
             type: "CoopHistoryDetail",
-            uid: uid1,
-            timestamp: timestamp1,
-            uuid: uuid1
+            uid,
+            timestamp,
+            uuid
         };
     } else {
         throw new Error(`Invalid ID: ${plainText}`);
@@ -5081,55 +5089,80 @@ function urlSimplify(url) {
         return url;
     }
 }
-async function loginManually({ newFetcher , prompts: { promptLogin  }  }) {
+const battleTime = (id)=>{
+    const { timestamp  } = parseHistoryDetailId(id);
+    const dateStr = timestamp.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6Z");
+    return new Date(dateStr);
+};
+async function loginSteps({ newFetcher  }, step2) {
     const fetch = newFetcher();
-    const state = urlBase64Encode(random(36));
-    const authCodeVerifier = urlBase64Encode(random(32));
-    const authCvHash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(authCodeVerifier));
-    const authCodeChallenge = urlBase64Encode(authCvHash);
-    const body = {
-        "state": state,
-        "redirect_uri": "npf71b963c1b7b6d119://auth",
-        "client_id": "71b963c1b7b6d119",
-        "scope": "openid user user.birthday user.mii user.screenName",
-        "response_type": "session_token_code",
-        "session_token_code_challenge": authCodeChallenge,
-        "session_token_code_challenge_method": "S256",
-        "theme": "login_form"
-    };
-    const url = "https://accounts.nintendo.com/connect/1.0.0/authorize?" + new URLSearchParams(body);
-    const res = await fetch.get({
-        url,
-        headers: {
-            "Host": "accounts.nintendo.com",
-            "Connection": "keep-alive",
-            "Cache-Control": "max-age=0",
-            "Upgrade-Insecure-Requests": "1",
-            "User-Agent": "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Mobile Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8n",
-            "DNT": "1",
-            "Accept-Encoding": "gzip,deflate,br"
+    if (!step2) {
+        const state = urlBase64Encode(random(36));
+        const authCodeVerifier = urlBase64Encode(random(32));
+        const authCvHash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(authCodeVerifier));
+        const authCodeChallenge = urlBase64Encode(authCvHash);
+        const body = {
+            "state": state,
+            "redirect_uri": "npf71b963c1b7b6d119://auth",
+            "client_id": "71b963c1b7b6d119",
+            "scope": "openid user user.birthday user.mii user.screenName",
+            "response_type": "session_token_code",
+            "session_token_code_challenge": authCodeChallenge,
+            "session_token_code_challenge_method": "S256",
+            "theme": "login_form"
+        };
+        const url = "https://accounts.nintendo.com/connect/1.0.0/authorize?" + new URLSearchParams(body);
+        const res = await fetch.get({
+            url,
+            headers: {
+                "Host": "accounts.nintendo.com",
+                "Connection": "keep-alive",
+                "Cache-Control": "max-age=0",
+                "Upgrade-Insecure-Requests": "1",
+                "User-Agent": DEFAULT_APP_USER_AGENT,
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8n",
+                "DNT": "1",
+                "Accept-Encoding": "gzip,deflate,br"
+            }
+        });
+        return {
+            authCodeVerifier,
+            url: res.url
+        };
+    } else {
+        const { login , authCodeVerifier  } = step2;
+        const loginURL = new URL(login);
+        const params = new URLSearchParams(loginURL.hash.substring(1));
+        const sessionTokenCode = params.get("session_token_code");
+        if (!sessionTokenCode) {
+            throw new Error("No session token code provided");
         }
-    });
-    const login = (await promptLogin(res.url)).trim();
+        const sessionToken = await getSessionToken({
+            fetch,
+            sessionTokenCode,
+            authCodeVerifier
+        });
+        if (!sessionToken) {
+            throw new Error("No session token found");
+        }
+        return {
+            sessionToken
+        };
+    }
+}
+async function loginManually(env) {
+    const { prompts: { promptLogin  }  } = env;
+    const step1 = await loginSteps(env);
+    const { url , authCodeVerifier  } = step1;
+    const login = (await promptLogin(url)).trim();
     if (!login) {
         throw new Error("No login URL provided");
     }
-    const loginURL = new URL(login);
-    const params = new URLSearchParams(loginURL.hash.substring(1));
-    const sessionTokenCode = params.get("session_token_code");
-    if (!sessionTokenCode) {
-        throw new Error("No session token code provided");
-    }
-    const sessionToken = await getSessionToken({
-        fetch,
-        sessionTokenCode,
-        authCodeVerifier
+    const step2 = await loginSteps(env, {
+        authCodeVerifier,
+        login
     });
-    if (!sessionToken) {
-        throw new Error("No session token found");
-    }
-    return sessionToken;
+    return step2.sessionToken;
 }
 async function getGToken({ fApi , sessionToken , env  }) {
     const fetch = env.newFetcher();
@@ -5171,12 +5204,13 @@ async function getGToken({ fApi , sessionToken , env  }) {
         }
     });
     const uiRespJson = await uiResp.json();
-    const { nickname , birthday , language , country  } = uiRespJson;
+    const { nickname , birthday , language , country , id: userId  } = uiRespJson;
     const getIdToken2 = async (idToken)=>{
         const { f , request_id: requestId , timestamp  } = await callImink({
             fApi,
             step: 1,
             idToken,
+            userId,
             env
         });
         const resp = await fetch.post({
@@ -5203,20 +5237,26 @@ async function getGToken({ fApi , sessionToken , env  }) {
         });
         const respJson = await resp.json();
         const idToken2 = respJson?.result?.webApiServerCredential?.accessToken;
-        if (!idToken2) {
+        const coralUserId = respJson?.result?.user?.id?.toString();
+        if (!idToken2 || !coralUserId) {
             throw new APIError({
                 response: resp,
                 json: respJson,
-                message: "No idToken2 found"
+                message: `No idToken2 or coralUserId found. Please try again later. (${idToken2.length}, ${coralUserId.length})`
             });
         }
-        return idToken2;
+        return [
+            idToken2,
+            coralUserId
+        ];
     };
-    const getGToken = async (idToken)=>{
+    const getGToken = async (idToken, coralUserId)=>{
         const { f , request_id: requestId , timestamp  } = await callImink({
             step: 2,
             idToken,
             fApi,
+            userId,
+            coralUserId,
             env
         });
         const resp = await fetch.post({
@@ -5250,8 +5290,8 @@ async function getGToken({ fApi , sessionToken , env  }) {
         }
         return webServiceToken;
     };
-    const idToken2 = await retry(()=>getIdToken2(idToken));
-    const webServiceToken = await retry(()=>getGToken(idToken2));
+    const [idToken2, coralUserId] = await retry(()=>getIdToken2(idToken));
+    const webServiceToken = await retry(()=>getGToken(idToken2, coralUserId));
     return {
         webServiceToken,
         nickname,
@@ -5348,7 +5388,8 @@ async function getSessionToken({ fetch , sessionTokenCode , authCodeVerifier  })
     }
     return json["session_token"];
 }
-async function callImink({ fApi , step , idToken , env  }) {
+async function callImink(params) {
+    const { fApi , step , idToken , userId , coralUserId , env  } = params;
     const { post  } = env.newFetcher();
     const resp = await post({
         url: fApi,
@@ -5358,7 +5399,9 @@ async function callImink({ fApi , step , idToken , env  }) {
         },
         body: JSON.stringify({
             "token": idToken,
-            "hash_method": step
+            "hash_method": step,
+            "na_id": userId,
+            "coral_user_id": coralUserId
         })
     });
     return await resp.json();
@@ -5411,6 +5454,7 @@ const DEFAULT_STATE = {
     monitorInterval: 500
 };
 class FileStateBackend {
+    path;
     constructor(path){
         this.path = path;
     }
@@ -5425,7 +5469,6 @@ class FileStateBackend {
         await Deno.writeTextFile(swapPath, data);
         await Deno.rename(swapPath, this.path);
     }
-    path;
 }
 class Profile {
     _state;
@@ -5458,29 +5501,15 @@ class Profile {
         }
     }
 }
-var Queries;
-(function(Queries) {
-    Queries["HomeQuery"] = "dba47124d5ec3090c97ba17db5d2f4b3";
-    Queries["LatestBattleHistoriesQuery"] = "4f5f26e64bca394b45345a65a2f383bd";
-    Queries["RegularBattleHistoriesQuery"] = "d5b795d09e67ce153e622a184b7e7dfa";
-    Queries["BankaraBattleHistoriesQuery"] = "de4754588109b77dbcb90fbe44b612ee";
-    Queries["XBattleHistoriesQuery"] = "45c74fefb45a49073207229ca65f0a62";
-    Queries["PrivateBattleHistoriesQuery"] = "1d6ed57dc8b801863126ad4f351dfb9a";
-    Queries["VsHistoryDetailQuery"] = "291295ad311b99a6288fc95a5c4cb2d2";
-    Queries["CoopHistoryQuery"] = "6ed02537e4a65bbb5e7f4f23092f6154";
-    Queries["CoopHistoryDetailQuery"] = "3cc5f826a6646b85f3ae45db51bd0707";
-    Queries["myOutfitCommonDataFilteringConditionQuery"] = "d02ab22c9dccc440076055c8baa0fa7a";
-    Queries["myOutfitCommonDataEquipmentsQuery"] = "d29cd0c2b5e6bac90dd5b817914832f8";
-    Queries["HistoryRecordQuery"] = "32b6771f94083d8f04848109b7300af5";
-    Queries["ConfigureAnalyticsQuery"] = "f8ae00773cc412a50dd41a6d9a159ddd";
-})(Queries || (Queries = {}));
 var BattleListType;
 (function(BattleListType) {
     BattleListType[BattleListType["Latest"] = 0] = "Latest";
     BattleListType[BattleListType["Regular"] = 1] = "Regular";
     BattleListType[BattleListType["Bankara"] = 2] = "Bankara";
-    BattleListType[BattleListType["Private"] = 3] = "Private";
-    BattleListType[BattleListType["Coop"] = 4] = "Coop";
+    BattleListType[BattleListType["Event"] = 3] = "Event";
+    BattleListType[BattleListType["XBattle"] = 4] = "XBattle";
+    BattleListType[BattleListType["Private"] = 5] = "Private";
+    BattleListType[BattleListType["Coop"] = 6] = "Coop";
 })(BattleListType || (BattleListType = {}));
 var SummaryEnum;
 (function(SummaryEnum) {
@@ -5585,6 +5614,8 @@ class Splatnet3 {
         [BattleListType.Latest]: ()=>this.request(Queries.LatestBattleHistoriesQuery).then((r)=>getIdsFromGroups(r.latestBattleHistories)),
         [BattleListType.Regular]: ()=>this.request(Queries.RegularBattleHistoriesQuery).then((r)=>getIdsFromGroups(r.regularBattleHistories)),
         [BattleListType.Bankara]: ()=>this.request(Queries.BankaraBattleHistoriesQuery).then((r)=>getIdsFromGroups(r.bankaraBattleHistories)),
+        [BattleListType.XBattle]: ()=>this.request(Queries.XBattleHistoriesQuery).then((r)=>getIdsFromGroups(r.xBattleHistories)),
+        [BattleListType.Event]: ()=>this.request(Queries.EventBattleHistoriesQuery).then((r)=>getIdsFromGroups(r.eventBattleHistories)),
         [BattleListType.Private]: ()=>this.request(Queries.PrivateBattleHistoriesQuery).then((r)=>getIdsFromGroups(r.privateBattleHistories)),
         [BattleListType.Coop]: ()=>this.request(Queries.CoopHistoryQuery).then((r)=>getIdsFromGroups(r.coopResult))
     };
@@ -5594,7 +5625,7 @@ class Splatnet3 {
             return false;
         }
         try {
-            await this.request(Queries.HomeQuery);
+            await this.request(Queries.ConfigureAnalyticsQuery);
             return true;
         } catch (_e) {
             return false;
@@ -5602,6 +5633,24 @@ class Splatnet3 {
     }
     async getBattleList(battleListType = BattleListType.Latest) {
         return await this.BATTLE_LIST_TYPE_MAP[battleListType]();
+    }
+    async getAllBattleList() {
+        const ALL_TYPE = [
+            BattleListType.Regular,
+            BattleListType.Bankara,
+            BattleListType.XBattle,
+            BattleListType.Event,
+            BattleListType.Private
+        ];
+        const ids = [];
+        for (const type of ALL_TYPE){
+            ids.push(...await this.getBattleList(type));
+        }
+        const timeMap = new Map(ids.map((id)=>[
+                id,
+                battleTime(id)
+            ]));
+        return ids.sort((a, b)=>timeMap.get(b).getTime() - timeMap.get(a).getTime());
     }
     getBattleDetail(id) {
         return this.request(Queries.VsHistoryDetailQuery, {
@@ -5678,6 +5727,7 @@ class MemoryCache {
     }
 }
 class FileCache {
+    path;
     constructor(path){
         this.path = path;
     }
@@ -5709,8 +5759,8 @@ class FileCache {
         await Deno.writeFile(swapPath, data);
         await Deno.rename(swapPath, path);
     }
-    path;
 }
+const __default = JSON.parse("[\n  {\n    \"key\": \"ink_saver_main\",\n    \"name\": {\n      \"de-DE\": \"Hauptverbrauch\",\n      \"en-GB\": \"Ink Saver (Main)\",\n      \"en-US\": \"Ink Saver (Main)\",\n      \"es-ES\": \"Tintahorro (ppal.)\",\n      \"es-MX\": \"Ahorro tinta (ppal.)\",\n      \"fr-CA\": \"Encrémenteur (pr.)\",\n      \"fr-FR\": \"Encrémenteur (pr.)\",\n      \"it-IT\": \"Eco-colore princ.\",\n      \"ja-JP\": \"インク効率アップ(メイン)\",\n      \"ko-KR\": \"잉크 효율 업(메인)\",\n      \"nl-NL\": \"Hoofdspaarder\",\n      \"ru-RU\": \"Основной баллон X\",\n      \"zh-CN\": \"提升墨汁效率（主要武器）\",\n      \"zh-TW\": \"提升墨汁效率（主要武器）\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"ink_saver_sub\",\n    \"name\": {\n      \"de-DE\": \"Sekundärverbrauch\",\n      \"en-GB\": \"Ink Saver (Sub)\",\n      \"en-US\": \"Ink Saver (Sub)\",\n      \"es-ES\": \"Tintahorro (sec.)\",\n      \"es-MX\": \"Ahorro tinta (sec.)\",\n      \"fr-CA\": \"Encrémenteur (sec.)\",\n      \"fr-FR\": \"Encrémenteur (sec.)\",\n      \"it-IT\": \"Eco-colore second.\",\n      \"ja-JP\": \"インク効率アップ(サブ)\",\n      \"ko-KR\": \"잉크 효율 업(서브)\",\n      \"nl-NL\": \"Subspaarder\",\n      \"ru-RU\": \"Запасной баллон X\",\n      \"zh-CN\": \"提升墨汁效率（次要武器）\",\n      \"zh-TW\": \"提升墨汁效率（次要武器）\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"ink_recovery_up\",\n    \"name\": {\n      \"de-DE\": \"Regeneration +\",\n      \"en-GB\": \"Ink Recovery Up\",\n      \"en-US\": \"Ink Recovery Up\",\n      \"es-ES\": \"Recarga rápida\",\n      \"es-MX\": \"Mejor recarga tinta\",\n      \"fr-CA\": \"Levée d'encre\",\n      \"fr-FR\": \"Levée d'encre\",\n      \"it-IT\": \"Recupero colore +\",\n      \"ja-JP\": \"インク回復力アップ\",\n      \"ko-KR\": \"잉크 회복력 업\",\n      \"nl-NL\": \"Inktvulling\",\n      \"ru-RU\": \"Быстрый баллон\",\n      \"zh-CN\": \"提升墨汁回复力\",\n      \"zh-TW\": \"提升墨汁回復力\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"run_speed_up\",\n    \"name\": {\n      \"de-DE\": \"Lauftempo +\",\n      \"en-GB\": \"Run Speed Up\",\n      \"en-US\": \"Run Speed Up\",\n      \"es-ES\": \"Supercarrera\",\n      \"es-MX\": \"Carrera acelerada\",\n      \"fr-CA\": \"Course à pied\",\n      \"fr-FR\": \"Course à pied\",\n      \"it-IT\": \"Velocità +\",\n      \"ja-JP\": \"ヒト移動速度アップ\",\n      \"ko-KR\": \"인간 이동 속도 업\",\n      \"nl-NL\": \"Hardloper\",\n      \"ru-RU\": \"Спринтер\",\n      \"zh-CN\": \"提升人类移动速度\",\n      \"zh-TW\": \"提升人類移動速度\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"swim_speed_up\",\n    \"name\": {\n      \"de-DE\": \"Schwimmtempo +\",\n      \"en-GB\": \"Swim Speed Up\",\n      \"en-US\": \"Swim Speed Up\",\n      \"es-ES\": \"Superbuceo\",\n      \"es-MX\": \"Nado acelerado\",\n      \"fr-CA\": \"Turbo-calmar\",\n      \"fr-FR\": \"Turbo-calamar\",\n      \"it-IT\": \"Velocità nuoto +\",\n      \"ja-JP\": \"イカダッシュ速度アップ\",\n      \"ko-KR\": \"징어대시 속도 업\",\n      \"nl-NL\": \"Zwemdiploma\",\n      \"ru-RU\": \"Плавунец\",\n      \"zh-CN\": \"提升鱿鱼冲刺速度\",\n      \"zh-TW\": \"提升魷魚衝刺速度\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"special_charge_up\",\n    \"name\": {\n      \"de-DE\": \"Spezialladezeit +\",\n      \"en-GB\": \"Special Charge Up\",\n      \"en-US\": \"Special Charge Up\",\n      \"es-ES\": \"Recarga especial\",\n      \"es-MX\": \"Recarga especial\",\n      \"fr-CA\": \"Jauge spéciale +\",\n      \"fr-FR\": \"Jauge spéciale +\",\n      \"it-IT\": \"Ricarica speciale +\",\n      \"ja-JP\": \"スペシャル増加量アップ\",\n      \"ko-KR\": \"스페셜 증가량 업\",\n      \"nl-NL\": \"Speciaallader\",\n      \"ru-RU\": \"Особый насос\",\n      \"zh-CN\": \"提升特殊武器增加量\",\n      \"zh-TW\": \"提升特殊武器增加量\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"special_saver\",\n    \"name\": {\n      \"de-DE\": \"Spezialabzug -\",\n      \"en-GB\": \"Special Saver\",\n      \"en-US\": \"Special Saver\",\n      \"es-ES\": \"Reducción especial\",\n      \"es-MX\": \"Ahorro especial\",\n      \"fr-CA\": \"Baisse spéciale -\",\n      \"fr-FR\": \"Baisse spéciale -\",\n      \"it-IT\": \"Riduzione speciale -\",\n      \"ja-JP\": \"スペシャル減少量ダウン\",\n      \"ko-KR\": \"스페셜 감소량 다운\",\n      \"nl-NL\": \"Speciaalspaarder\",\n      \"ru-RU\": \"Особый резерв\",\n      \"zh-CN\": \"降低特殊武器减少量\",\n      \"zh-TW\": \"降低特殊武器減少量\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"special_power_up\",\n    \"name\": {\n      \"de-DE\": \"Spezialstärke +\",\n      \"en-GB\": \"Special Power Up\",\n      \"en-US\": \"Special Power Up\",\n      \"es-ES\": \"Superarma especial\",\n      \"es-MX\": \"Mejora especial\",\n      \"fr-CA\": \"Arme spéciale +\",\n      \"fr-FR\": \"Arme spéciale +\",\n      \"it-IT\": \"Arma speciale +\",\n      \"ja-JP\": \"スペシャル性能アップ\",\n      \"ko-KR\": \"스페셜 성능 업\",\n      \"nl-NL\": \"Specialist\",\n      \"ru-RU\": \"Особый подход\",\n      \"zh-CN\": \"提升特殊武器性能\",\n      \"zh-TW\": \"提升特殊武器性能\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"quick_respawn\",\n    \"name\": {\n      \"de-DE\": \"Schnelle Rückkehr\",\n      \"en-GB\": \"Quick Respawn\",\n      \"en-US\": \"Quick Respawn\",\n      \"es-ES\": \"Retorno exprés\",\n      \"es-MX\": \"Regeneración rápida\",\n      \"fr-CA\": \"Sans temps mort\",\n      \"fr-FR\": \"Sans temps morts\",\n      \"it-IT\": \"Il tempo è colore\",\n      \"ja-JP\": \"復活時間短縮\",\n      \"ko-KR\": \"부활 시간 단축\",\n      \"nl-NL\": \"Comeback\",\n      \"ru-RU\": \"Феникс\",\n      \"zh-CN\": \"缩短复活时间\",\n      \"zh-TW\": \"縮短復活時間\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"quick_super_jump\",\n    \"name\": {\n      \"de-DE\": \"Supersprung +\",\n      \"en-GB\": \"Quick Super Jump\",\n      \"en-US\": \"Quick Super Jump\",\n      \"es-ES\": \"Supersalto rápido\",\n      \"es-MX\": \"Supersalto rápido\",\n      \"fr-CA\": \"Aérodynamisme\",\n      \"fr-FR\": \"Aérodynamisme\",\n      \"it-IT\": \"Salti super e veloci\",\n      \"ja-JP\": \"スーパージャンプ時間短縮\",\n      \"ko-KR\": \"슈퍼 점프 시간 단축\",\n      \"nl-NL\": \"Turbosprong\",\n      \"ru-RU\": \"Суперпрыгун\",\n      \"zh-CN\": \"缩短超级跳跃时间\",\n      \"zh-TW\": \"縮短超級跳躍時間\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"sub_power_up\",\n    \"name\": {\n      \"de-DE\": \"Sekundärstärke +\",\n      \"en-GB\": \"Sub Power Up\",\n      \"en-US\": \"Sub Power Up\",\n      \"es-ES\": \"Superarma secundaria\",\n      \"es-MX\": \"Mejora secundaria\",\n      \"fr-CA\": \"Arme secondaire +\",\n      \"fr-FR\": \"Arme secondaire +\",\n      \"it-IT\": \"Arma secondaria +\",\n      \"ja-JP\": \"サブ性能アップ\",\n      \"ko-KR\": \"서브 성능 업\",\n      \"nl-NL\": \"Subtopper\",\n      \"ru-RU\": \"Про-Запас\",\n      \"zh-CN\": \"提升次要武器性能\",\n      \"zh-TW\": \"提升次要武器性能\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"ink_resistance_up\",\n    \"name\": {\n      \"de-DE\": \"Tintentoleranz +\",\n      \"en-GB\": \"Ink Resistance Up\",\n      \"en-US\": \"Ink Resistance Up\",\n      \"es-ES\": \"Impermeabilidad\",\n      \"es-MX\": \"Impermeabilidad\",\n      \"fr-CA\": \"Imperméabilité\",\n      \"fr-FR\": \"Pieds au sec\",\n      \"it-IT\": \"Scarpe impermeabili\",\n      \"ja-JP\": \"相手インク影響軽減\",\n      \"ko-KR\": \"상대 잉크 영향 감소\",\n      \"nl-NL\": \"Inkttolerantie\",\n      \"ru-RU\": \"Краскостойкость\",\n      \"zh-CN\": \"减轻对手墨汁影响\",\n      \"zh-TW\": \"減輕對手墨汁影響\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"sub_resistance_up\",\n    \"name\": {\n      \"de-DE\": \"Sekundärschutz +\",\n      \"en-GB\": \"Sub Resistance Up\",\n      \"en-US\": \"Sub Resistance Up\",\n      \"es-ES\": \"Resistencia secundaria\",\n      \"es-MX\": \"Resistencia secundaria\",\n      \"fr-CA\": \"Filtre à secondaires\",\n      \"fr-FR\": \"Filtre à secondaires\",\n      \"it-IT\": \"Arma sec. impermeabile\",\n      \"ja-JP\": \"サブ影響軽減\",\n      \"ko-KR\": \"서브 영향 감소\",\n      \"nl-NL\": \"Subdemper\",\n      \"ru-RU\": \"Стойкость запаса\",\n      \"zh-CN\": \"减轻次要武器影响\",\n      \"zh-TW\": \"減輕次要武器影響\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"intensify_action\",\n    \"name\": {\n      \"de-DE\": \"Action +\",\n      \"en-GB\": \"Intensify Action\",\n      \"en-US\": \"Intensify Action\",\n      \"es-ES\": \"Agilidad extra\",\n      \"es-MX\": \"Agilidad extra\",\n      \"fr-CA\": \"Feu de l'action\",\n      \"fr-FR\": \"Feu de l'action\",\n      \"it-IT\": \"Intensificazione\",\n      \"ja-JP\": \"アクション強化\",\n      \"ko-KR\": \"액션 강화\",\n      \"nl-NL\": \"Actie-assistentie\",\n      \"ru-RU\": \"Ультраудар\",\n      \"zh-CN\": \"行动强化\",\n      \"zh-TW\": \"行動強化\"\n    },\n    \"primary_only\": false\n  },\n  {\n    \"key\": \"opening_gambit\",\n    \"name\": {\n      \"de-DE\": \"Startvorteil\",\n      \"en-GB\": \"Opening Gambit\",\n      \"en-US\": \"Opening Gambit\",\n      \"es-ES\": \"Acelerón de salida\",\n      \"es-MX\": \"Acelerón de salida\",\n      \"fr-CA\": \"Départ toute allure\",\n      \"fr-FR\": \"Chapeaux de roue\",\n      \"it-IT\": \"Partenza a razzo\",\n      \"ja-JP\": \"スタートダッシュ\",\n      \"ko-KR\": \"스타트 대시\",\n      \"nl-NL\": \"Vliegende start\",\n      \"ru-RU\": \"Стартовый спурт\",\n      \"zh-CN\": \"最初冲刺\",\n      \"zh-TW\": \"最初衝刺\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"last_ditch_effort\",\n    \"name\": {\n      \"de-DE\": \"Endspurt\",\n      \"en-GB\": \"Last-Ditch Effort\",\n      \"en-US\": \"Last-Ditch Effort\",\n      \"es-ES\": \"Sprint final\",\n      \"es-MX\": \"Último recurso\",\n      \"fr-CA\": \"Ultime sursaut\",\n      \"fr-FR\": \"Ultime sursaut\",\n      \"it-IT\": \"Splash finale\",\n      \"ja-JP\": \"ラストスパート\",\n      \"ko-KR\": \"라스트 스퍼트\",\n      \"nl-NL\": \"Eindsprint\",\n      \"ru-RU\": \"Финишный спурт\",\n      \"zh-CN\": \"最后冲刺\",\n      \"zh-TW\": \"最後衝刺\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"tenacity\",\n    \"name\": {\n      \"de-DE\": \"Zähigkeit\",\n      \"en-GB\": \"Tenacity\",\n      \"en-US\": \"Tenacity\",\n      \"es-ES\": \"Ventaja\",\n      \"es-MX\": \"Tenacidad\",\n      \"fr-CA\": \"Ténacité\",\n      \"fr-FR\": \"Justice\",\n      \"it-IT\": \"Tenacia\",\n      \"ja-JP\": \"逆境強化\",\n      \"ko-KR\": \"역경 강화\",\n      \"nl-NL\": \"Volharding\",\n      \"ru-RU\": \"Компенсатор\",\n      \"zh-CN\": \"逆境强化\",\n      \"zh-TW\": \"逆境強化\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"comeback\",\n    \"name\": {\n      \"de-DE\": \"Rückkehr\",\n      \"en-GB\": \"Comeback\",\n      \"en-US\": \"Comeback\",\n      \"es-ES\": \"Remontada\",\n      \"es-MX\": \"Remonte\",\n      \"fr-CA\": \"Retour\",\n      \"fr-FR\": \"Come-back\",\n      \"it-IT\": \"Gran ritorno\",\n      \"ja-JP\": \"カムバック\",\n      \"ko-KR\": \"컴백\",\n      \"nl-NL\": \"Opfrisser\",\n      \"ru-RU\": \"Ответный удар\",\n      \"zh-CN\": \"回归\",\n      \"zh-TW\": \"回歸\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"ninja_squid\",\n    \"name\": {\n      \"de-DE\": \"Tintenfisch-Ninja\",\n      \"en-GB\": \"Ninja Squid\",\n      \"en-US\": \"Ninja Squid\",\n      \"es-ES\": \"Ninjalamar\",\n      \"es-MX\": \"Ninjalamar\",\n      \"fr-CA\": \"Ninjalmar\",\n      \"fr-FR\": \"Ninjalamar\",\n      \"it-IT\": \"Calamaro ninja\",\n      \"ja-JP\": \"イカニンジャ\",\n      \"ko-KR\": \"징어닌자\",\n      \"nl-NL\": \"Ninja-inktvis\",\n      \"ru-RU\": \"Мимикрия\",\n      \"zh-CN\": \"鱿鱼忍者\",\n      \"zh-TW\": \"魷魚忍者\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"haunt\",\n    \"name\": {\n      \"de-DE\": \"Vergeltung\",\n      \"en-GB\": \"Haunt\",\n      \"en-US\": \"Haunt\",\n      \"es-ES\": \"Represalia\",\n      \"es-MX\": \"Resentimiento\",\n      \"fr-CA\": \"Vengeance\",\n      \"fr-FR\": \"Revanche\",\n      \"it-IT\": \"Rappresaglia\",\n      \"ja-JP\": \"リベンジ\",\n      \"ko-KR\": \"리벤지\",\n      \"nl-NL\": \"Revanche\",\n      \"ru-RU\": \"Вендетта\",\n      \"zh-CN\": \"复仇\",\n      \"zh-TW\": \"復仇\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"thermal_ink\",\n    \"name\": {\n      \"de-DE\": \"Markierfarbe\",\n      \"en-GB\": \"Thermal Ink\",\n      \"en-US\": \"Thermal Ink\",\n      \"es-ES\": \"Señuelo\",\n      \"es-MX\": \"Tinta rastreadora\",\n      \"fr-CA\": \"Encre thermique\",\n      \"fr-FR\": \"Encre thermique\",\n      \"it-IT\": \"Inchiostro termico\",\n      \"ja-JP\": \"サーマルインク\",\n      \"ko-KR\": \"서멀 잉크\",\n      \"nl-NL\": \"Markeerstift\",\n      \"ru-RU\": \"Клеймо\",\n      \"zh-CN\": \"热力墨汁\",\n      \"zh-TW\": \"熱力墨汁\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"respawn_punisher\",\n    \"name\": {\n      \"de-DE\": \"Heimsuchung\",\n      \"en-GB\": \"Respawn Punisher\",\n      \"en-US\": \"Respawn Punisher\",\n      \"es-ES\": \"Castigo póstumo\",\n      \"es-MX\": \"Castigo póstumo\",\n      \"fr-CA\": \"Retour perdant\",\n      \"fr-FR\": \"Retour perdant\",\n      \"it-IT\": \"Castigo\",\n      \"ja-JP\": \"復活ペナルティアップ\",\n      \"ko-KR\": \"부활 페널티 업\",\n      \"nl-NL\": \"Repercussie\",\n      \"ru-RU\": \"Кара\",\n      \"zh-CN\": \"提升复活惩罚\",\n      \"zh-TW\": \"提升復活懲罰\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"ability_doubler\",\n    \"name\": {\n      \"de-DE\": \"Effektdoppelung\",\n      \"en-GB\": \"Ability Doubler\",\n      \"en-US\": \"Ability Doubler\",\n      \"es-ES\": \"Duplicador\",\n      \"es-MX\": \"Duplicador\",\n      \"fr-CA\": \"Bonus ×2\",\n      \"fr-FR\": \"Bonus ×2\",\n      \"it-IT\": \"Raddoppiatore\",\n      \"ja-JP\": \"追加ギアパワー倍化\",\n      \"ko-KR\": \"추가 기어 파워 2배\",\n      \"nl-NL\": \"Verdubbelaar\",\n      \"ru-RU\": \"Дупликатор\",\n      \"zh-CN\": \"追加装备能力增倍\",\n      \"zh-TW\": \"追加裝備能力增倍\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"stealth_jump\",\n    \"name\": {\n      \"de-DE\": \"Sprunginfiltration\",\n      \"en-GB\": \"Stealth Jump\",\n      \"en-US\": \"Stealth Jump\",\n      \"es-ES\": \"Supersalto invisible\",\n      \"es-MX\": \"Supersalto invisible\",\n      \"fr-CA\": \"Super saut invisible\",\n      \"fr-FR\": \"Réception réussie\",\n      \"it-IT\": \"Salto al buio\",\n      \"ja-JP\": \"ステルスジャンプ\",\n      \"ko-KR\": \"스텔스 점프\",\n      \"nl-NL\": \"Sluipsprong\",\n      \"ru-RU\": \"Десант\",\n      \"zh-CN\": \"隐身跳跃\",\n      \"zh-TW\": \"隱身跳躍\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"object_shredder\",\n    \"name\": {\n      \"de-DE\": \"Zerstörer\",\n      \"en-GB\": \"Object Shredder\",\n      \"en-US\": \"Object Shredder\",\n      \"es-ES\": \"Demolición\",\n      \"es-MX\": \"Demolición\",\n      \"fr-CA\": \"Démolition\",\n      \"fr-FR\": \"Démolition\",\n      \"it-IT\": \"Demolitore\",\n      \"ja-JP\": \"対物攻撃力アップ\",\n      \"ko-KR\": \"오브젝트 공격력 업\",\n      \"nl-NL\": \"Sloper\",\n      \"ru-RU\": \"Демонтажник\",\n      \"zh-CN\": \"提升对物体攻击力\",\n      \"zh-TW\": \"提升對物體攻擊力\"\n    },\n    \"primary_only\": true\n  },\n  {\n    \"key\": \"drop_roller\",\n    \"name\": {\n      \"de-DE\": \"Tricklandung\",\n      \"en-GB\": \"Drop Roller\",\n      \"en-US\": \"Drop Roller\",\n      \"es-ES\": \"Amortiguador\",\n      \"es-MX\": \"Aterrizaje rodante\",\n      \"fr-CA\": \"Super roulade\",\n      \"fr-FR\": \"Super roulade\",\n      \"it-IT\": \"Atterraggio stiloso\",\n      \"ja-JP\": \"受け身術\",\n      \"ko-KR\": \"낙법\",\n      \"nl-NL\": \"Rolmodel\",\n      \"ru-RU\": \"Акробат\",\n      \"zh-CN\": \"受身术\",\n      \"zh-TW\": \"受身術\"\n    },\n    \"primary_only\": true\n  }\n]");
 const COOP_POINT_MAP = {
     0: -20,
     1: -10,
@@ -5728,6 +5778,8 @@ async function checkResponse(resp) {
     }
 }
 class StatInkAPI {
+    statInkApiKey;
+    env;
     statInk;
     FETCH_LOCK;
     cache;
@@ -5740,7 +5792,7 @@ class StatInkAPI {
         this._salmonWeaponMap = new Map();
         this.getSalmonWeapon = ()=>this._getCached(`${this.statInk}/api/v3/salmon/weapon?full=1`);
         this.getWeapon = ()=>this._getCached(`${this.statInk}/api/v3/weapon?full=1`);
-        this.getAbility = ()=>this._getCached(`${this.statInk}/api/v3/ability?full=1`);
+        this.getAbility = ()=>__default;
         this.getStage = ()=>this._getCached(`${this.statInk}/api/v3/stage`);
         if (statInkApiKey.length !== 43) {
             throw new Error("Invalid stat.ink API key");
@@ -5879,8 +5931,6 @@ class StatInkAPI {
     getWeapon;
     getAbility;
     getStage;
-    statInkApiKey;
-    env;
 }
 class StatInkExporter {
     name = "stat.ink";
@@ -5894,12 +5944,6 @@ class StatInkExporter {
         return vsMode.mode === "FEST" && b64Number(vsMode.id) === 8;
     }
     async exportGame(game) {
-        if (game.type === "VsInfo" && this.isTriColor(game.detail)) {
-            return {
-                status: "skip",
-                reason: "Tri-color fest is not supported"
-            };
-        }
         if (game.type === "VsInfo") {
             const body = await this.mapBattle(game);
             const { url  } = await this.api.postBattle(body);
@@ -5908,11 +5952,11 @@ class StatInkExporter {
                 url
             };
         } else {
-            const body1 = await this.mapCoop(game);
-            const { url: url1  } = await this.api.postCoop(body1);
+            const body = await this.mapCoop(game);
+            const { url  } = await this.api.postCoop(body);
             return {
                 status: "success",
-                url: url1
+                url
             };
         }
     }
@@ -5955,10 +5999,12 @@ class StatInkExporter {
             } else if (modeId === 7) {
                 return "splatfest_challenge";
             } else if (modeId === 8) {
-                throw new Error("Tri-color battle is not supported");
+                return "splatfest_open";
             }
         } else if (vsMode === "X_MATCH") {
             return "xmatch";
+        } else if (vsMode === "LEAGUE") {
+            return "event";
         }
         throw new TypeError(`Unknown vsMode ${vsMode}`);
     }
@@ -6009,6 +6055,7 @@ class StatInkExporter {
             weapon: b64Number(player.weapon.id).toString(),
             inked: player.paint,
             gears: await this.mapGears(player),
+            crown: player.crown ? "yes" : "no",
             disconnected: player.result ? "no" : "yes"
         };
         if (player.result) {
@@ -6016,17 +6063,21 @@ class StatInkExporter {
             result.assist = player.result.assist;
             result.kill = result.kill_or_assist - result.assist;
             result.death = player.result.death;
+            result.signal = player.result.noroshiTry ?? undefined;
             result.special = player.result.special;
         }
         return result;
     };
     async mapBattle({ groupInfo , challengeProgress , bankaraMatchChallenge , listNode , detail: vsDetail , rankBeforeState , rankState  }) {
-        const { knockout , vsRule: { rule  } , myTeam , otherTeams , bankaraMatch , festMatch , playedTime  } = vsDetail;
+        const { knockout , vsRule: { rule  } , myTeam , otherTeams , bankaraMatch , leagueMatch , festMatch , playedTime  } = vsDetail;
         const self = vsDetail.myTeam.players.find((i)=>i.isMyself);
         if (!self) {
             throw new Error("Self not found");
         }
         const startedAt = Math.floor(new Date(playedTime).getTime() / 1000);
+        if (otherTeams.length === 0) {
+            throw new Error(`Other teams is empty`);
+        }
         const result = {
             uuid: await gameId(vsDetail.id),
             lobby: this.mapLobby(vsDetail),
@@ -6038,7 +6089,7 @@ class StatInkExporter {
             rank_in_team: vsDetail.myTeam.players.indexOf(self) + 1,
             medals: vsDetail.awards.map((i)=>i.name),
             our_team_players: await Promise.all(myTeam.players.map(this.mapPlayer)),
-            their_team_players: await Promise.all(otherTeams.flatMap((i)=>i.players).map(this.mapPlayer)),
+            their_team_players: await Promise.all(otherTeams[0].players.map(this.mapPlayer)),
             agent: AGENT_NAME,
             agent_version: S3SI_VERSION,
             agent_variables: {
@@ -6053,18 +6104,47 @@ class StatInkExporter {
             result.assist = self.result.assist;
             result.kill = result.kill_or_assist - result.assist;
             result.death = self.result.death;
+            result.signal = self.result.noroshiTry ?? undefined;
             result.special = self.result.special;
+        }
+        result.our_team_color = this.mapColor(myTeam.color);
+        result.their_team_color = this.mapColor(otherTeams[0].color);
+        if (otherTeams.length === 2) {
+            result.third_team_color = this.mapColor(otherTeams[1].color);
         }
         if (festMatch) {
             result.fest_dragon = SPLATNET3_STATINK_MAP.DRAGON[festMatch.dragonMatchType];
             result.clout_change = festMatch.contribution;
             result.fest_power = festMatch.myFestPower ?? undefined;
         }
-        if (rule === "TURF_WAR") {
+        if (rule === "TURF_WAR" || rule === "TRI_COLOR") {
             result.our_team_percent = (myTeam?.result?.paintRatio ?? 0) * 100;
             result.their_team_percent = (otherTeams?.[0]?.result?.paintRatio ?? 0) * 100;
             result.our_team_inked = myTeam.players.reduce((acc, i)=>acc + i.paint, 0);
             result.their_team_inked = otherTeams?.[0].players.reduce((acc, i)=>acc + i.paint, 0);
+            if (myTeam.festTeamName) {
+                result.our_team_theme = myTeam.festTeamName;
+            }
+            if (myTeam.tricolorRole) {
+                result.our_team_role = myTeam.tricolorRole === "DEFENSE" ? "defender" : "attacker";
+            }
+            if (otherTeams[0].festTeamName) {
+                result.their_team_theme = otherTeams[0].festTeamName;
+            }
+            if (otherTeams[0].tricolorRole) {
+                result.their_team_role = otherTeams[0].tricolorRole === "DEFENSE" ? "defender" : "attacker";
+            }
+            if (otherTeams.length === 2) {
+                result.third_team_players = await Promise.all(otherTeams[1].players.map(this.mapPlayer));
+                result.third_team_percent = (otherTeams[1]?.result?.paintRatio ?? 0) * 100;
+                result.third_team_inked = otherTeams[1].players.reduce((acc, i)=>acc + i.paint, 0);
+                if (otherTeams[1].festTeamName) {
+                    result.third_team_theme = otherTeams[1].festTeamName;
+                }
+                if (otherTeams[1].tricolorRole) {
+                    result.third_team_role = otherTeams[1].tricolorRole === "DEFENSE" ? "defender" : "attacker";
+                }
+            }
         }
         if (knockout) {
             result.knockout = knockout === "NEITHER" ? "no" : "yes";
@@ -6085,6 +6165,10 @@ class StatInkExporter {
                 result.rank_after_s_plus = result.rank_before_s_plus;
             }
         }
+        if (leagueMatch) {
+            result.event = leagueMatch.leagueMatchEvent?.id;
+            result.event_power = leagueMatch.myLeaguePower;
+        }
         if (challengeProgress) {
             result.challenge_win = challengeProgress.winCount;
             result.challenge_lose = challengeProgress.loseCount;
@@ -6095,20 +6179,28 @@ class StatInkExporter {
                 result.x_power_after = groupInfo.xMatchMeasurement.xPowerAfter;
             }
         }
+        result.bankara_power_after = vsDetail.bankaraMatch?.bankaraPower?.power;
         if (rankBeforeState && rankState) {
             result.rank_before_exp = rankBeforeState.rankPoint;
             result.rank_after_exp = rankState.rankPoint;
             if (!bankaraMatchChallenge?.isUdemaeUp && result.rank_exp_change === undefined) {
                 result.rank_exp_change = result.rank_after_exp - result.rank_before_exp;
-            } else if (bankaraMatchChallenge?.isUdemaeUp && bankaraMatchChallenge.earnedUdemaePoint) {
-                result.rank_before_exp = result.rank_after_exp - bankaraMatchChallenge.earnedUdemaePoint;
-                result.rank_exp_change = undefined;
             }
             if (!result.rank_after) {
                 [result.rank_after, result.rank_after_s_plus] = parseUdemae(rankState.rank);
             }
         }
         return result;
+    }
+    mapColor(color) {
+        const float2hex = (i)=>Math.round(i * 255).toString(16).padStart(2, "0");
+        const nums = [
+            color.r,
+            color.g,
+            color.b,
+            color.a
+        ];
+        return nums.map(float2hex).join("");
     }
     isRandom(image) {
         const RANDOM_FILENAME = "473fffb2442075078d8bb7125744905abdeae651b6a5b7453ae295582e45f7d1";
@@ -6158,7 +6250,7 @@ class StatInkExporter {
             name: player.name,
             number: player.nameId,
             splashtag_title: player.byname,
-            uniform: SPLATNET3_STATINK_MAP.COOP_UNIFORM_MAP[b64Number(player.uniform.id)],
+            uniform: b64Number(player.uniform.id).toString(),
             special: specialWeapon ? await this.mapSpecial(specialWeapon) : undefined,
             weapons: await Promise.all(weapons.map((w)=>this.mapCoopWeapon(w))),
             golden_eggs: goldenDeliverCount,
@@ -6191,7 +6283,8 @@ class StatInkExporter {
             golden_quota: wave.deliverNorm,
             golden_appearances: wave.goldenPopCount,
             golden_delivered: wave.teamDeliverCount,
-            special_uses
+            special_uses,
+            danger_rate: null
         };
     }
     async mapCoop({ gradeBefore , groupInfo , detail  }) {
@@ -6209,9 +6302,10 @@ class StatInkExporter {
             ]));
         const title_after = detail.afterGrade ? b64Number(detail.afterGrade.id).toString() : undefined;
         const title_exp_after = detail.afterGradePoint;
+        const maxWaves = detail.rule === "TEAM_CONTEST" ? 5 : 3;
         let clear_waves;
         if (waveResults.length > 0) {
-            clear_waves = waveResults.filter((i)=>i.waveNumber < 4).length - 1 + (resultWave === 0 ? 1 : 0);
+            clear_waves = waveResults.filter((i)=>i.waveNumber < maxWaves + 1).length - 1 + (resultWave === 0 ? 1 : 0);
         } else {
             clear_waves = 0;
         }
@@ -6236,7 +6330,7 @@ class StatInkExporter {
             }
         }
         let fail_reason = null;
-        if (clear_waves !== 3 && waveResults.length > 0) {
+        if (clear_waves !== maxWaves && waveResults.length > 0) {
             const lastWave = waveResults[waveResults.length - 1];
             if (lastWave.teamDeliverCount >= lastWave.deliverNorm) {
                 fail_reason = "wipe_out";
@@ -6246,8 +6340,9 @@ class StatInkExporter {
             uuid: await gameId(detail.id),
             private: groupInfo?.mode === "PRIVATE_CUSTOM" ? "yes" : "no",
             big_run: detail.rule === "BIG_RUN" ? "yes" : "no",
+            eggstra_work: detail.rule === "TEAM_CONTEST" ? "yes" : "no",
             stage: b64Number(detail.coopStage.id).toString(),
-            danger_rate: dangerRate * 100,
+            danger_rate: detail.rule === "TEAM_CONTEST" ? null : dangerRate * 100,
             clear_waves,
             fail_reason,
             king_smell: smellMeter,
@@ -6280,6 +6375,53 @@ class StatInkExporter {
             automated: "yes",
             start_at: startedAt
         };
+        if (detail.rule === "TEAM_CONTEST") {
+            let lastWave;
+            for (const [wave] of result.waves.map((p, i)=>[
+                    p,
+                    i
+                ])){
+                let haz_level;
+                if (!lastWave) {
+                    haz_level = 60;
+                } else {
+                    const num_players = result.players.length;
+                    const quota = lastWave.golden_quota;
+                    const delivered = lastWave.golden_delivered;
+                    let added_percent = 0;
+                    if (num_players == 4) {
+                        if (delivered >= quota * 2) {
+                            added_percent = 60;
+                        } else if (delivered >= quota * 1.5) {
+                            added_percent = 30;
+                        }
+                    } else if (num_players == 3) {
+                        if (delivered >= quota * 2) {
+                            added_percent = 40;
+                        } else if (delivered >= quota * 1.5) {
+                            added_percent = 20;
+                        }
+                    } else if (num_players == 2) {
+                        if (delivered >= quota * 2) {
+                            added_percent = 20;
+                        } else if (delivered >= quota * 1.5) {
+                            added_percent = 10;
+                            added_percent = 5;
+                        }
+                    } else if (num_players == 1) {
+                        if (delivered >= quota * 2) {
+                            added_percent = 10;
+                        } else if (delivered >= quota * 1.5) {
+                            added_percent = 5;
+                        }
+                    }
+                    const prev_percent = lastWave.danger_rate;
+                    haz_level = prev_percent + added_percent;
+                }
+                wave.danger_rate = haz_level;
+                lastWave = wave;
+            }
+        }
         return result;
     }
 }
@@ -6301,6 +6443,7 @@ function replacer(key, value) {
     return typeof value === "string" ? urlSimplify(value) : undefined;
 }
 class FileExporter {
+    exportPath;
     name;
     constructor(exportPath){
         this.exportPath = exportPath;
@@ -6310,7 +6453,7 @@ class FileExporter {
         const { uid , timestamp  } = parseHistoryDetailId(id);
         return `${uid}_${timestamp}Z.json`;
     }
-    async exportedGames({ uid , type  }) {
+    async exportedGames({ uid , type , filter  }) {
         const out = [];
         for await (const entry of Deno.readDir(this.exportPath)){
             const filename = entry.name;
@@ -6325,12 +6468,18 @@ class FileExporter {
                 continue;
             }
             if (body.type === "VS" && type === "VsInfo") {
+                if (filter && !filter(body.data)) {
+                    continue;
+                }
                 out.push({
                     id: body.data.detail.id,
                     filepath,
                     timestamp
                 });
             } else if (body.type === "COOP" && type === "CoopInfo") {
+                if (filter && !filter(body.data)) {
+                    continue;
+                }
                 out.push({
                     id: body.data.detail.id,
                     filepath,
@@ -6403,8 +6552,36 @@ class FileExporter {
         }
         return out;
     }
-    exportPath;
 }
+const SEASONS = [
+    {
+        id: "season202209",
+        name: "Drizzle Season 2022",
+        start: new Date("2022-09-01T00:00:00+00:00"),
+        end: new Date("2022-12-01T00:00:00+00:00")
+    },
+    {
+        id: "season202212",
+        name: "Chill Season 2022",
+        start: new Date("2022-12-01T00:00:00+00:00"),
+        end: new Date("2023-03-01T00:00:00+00:00")
+    },
+    {
+        id: "season202303",
+        name: "Fresh Season 2023",
+        start: new Date("2023-03-01T00:00:00+00:00"),
+        end: new Date("2023-06-01T00:00:00+00:00")
+    },
+    {
+        id: "season202306",
+        name: "Sizzle Season 2023",
+        start: new Date("2023-06-01T00:00:00+00:00"),
+        end: new Date("2023-09-01T00:00:00+00:00")
+    }
+];
+const getSeason = (date)=>{
+    return SEASONS.find((s)=>s.start <= date && date < s.end);
+};
 const splusParams = ()=>{
     const out = [];
     for(let i = 0; i < 50; i++){
@@ -6520,8 +6697,27 @@ const RANK_PARAMS = [
     ...splusParams()
 ];
 function addRank(state, delta) {
+    if (!state) {
+        if (delta.isPromotion && delta.isRankUp) {
+            state = getRankStateByDelta(delta);
+        } else {
+            return;
+        }
+    }
+    if (state.gameId !== delta.before.gameId) {
+        throw new Error("Invalid state");
+    }
     const { rank , rankPoint  } = state;
     const { gameId , timestamp , rankAfter , isPromotion , isRankUp , isChallengeFirst  } = delta;
+    if (state.timestamp) {
+        const oldSeason = getSeason(new Date(state.timestamp * 1000));
+        if (oldSeason) {
+            const newSeason = getSeason(new Date(timestamp * 1000));
+            if (newSeason?.id !== oldSeason.id) {
+                return;
+            }
+        }
+    }
     const rankIndex = RANK_PARAMS.findIndex((r)=>r.rank === rank);
     if (rankIndex === -1) {
         throw new Error(`Rank not found: ${rank}`);
@@ -6529,67 +6725,98 @@ function addRank(state, delta) {
     const rankParam = RANK_PARAMS[rankIndex];
     if (isChallengeFirst) {
         return {
-            gameId,
-            timestamp,
-            rank,
-            rankPoint: rankPoint - rankParam.charge
+            before: state,
+            after: {
+                gameId,
+                timestamp,
+                rank,
+                rankPoint: rankPoint - rankParam.charge
+            }
         };
     }
     if (rankIndex === RANK_PARAMS.length - 1) {
         return {
-            timestamp,
-            gameId,
-            rank,
-            rankPoint: Math.min(rankPoint + delta.rankPoint, rankParam.pointRange[1])
+            before: state,
+            after: {
+                timestamp,
+                gameId,
+                rank,
+                rankPoint: Math.min(rankPoint + delta.rankPoint, rankParam.pointRange[1])
+            }
         };
     }
     if (isPromotion && isRankUp) {
         const nextRankParam = RANK_PARAMS[rankIndex + 1];
         return {
-            gameId,
-            timestamp,
-            rank: nextRankParam.rank,
-            rankPoint: nextRankParam.pointRange[0]
+            before: state,
+            after: {
+                gameId,
+                timestamp,
+                rank: nextRankParam.rank,
+                rankPoint: nextRankParam.pointRange[0]
+            }
         };
     }
     return {
-        gameId,
-        timestamp,
-        rank: rankAfter ?? rank,
-        rankPoint: rankPoint + delta.rankPoint
+        before: state,
+        after: {
+            gameId,
+            timestamp,
+            rank: rankAfter ?? rank,
+            rankPoint: rankPoint + delta.rankPoint
+        }
     };
 }
-const battleTime = (id)=>{
-    const { timestamp  } = parseHistoryDetailId(id);
-    const dateStr = timestamp.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6Z");
-    return new Date(dateStr);
-};
-function generateDeltaList(state, flatten) {
-    const index = flatten.findIndex((i)=>i.gameId === state.gameId);
-    if (index === -1) {
-        return;
+function beginPoint(state, flatten) {
+    if (state) {
+        const index = flatten.findIndex((i)=>i.gameId === state.gameId);
+        if (index !== -1) {
+            return [
+                flatten[index],
+                flatten.slice(index)
+            ];
+        }
     }
-    const unProcessed = flatten.slice(index);
+    if (flatten.length === 0) {
+        throw new Error("flatten must not be empty");
+    }
+    return [
+        flatten[0],
+        flatten
+    ];
+}
+function getTimestamp(date) {
+    return Math.floor(date.getTime() / 1000);
+}
+function generateDeltaList(state, flatten) {
+    const [firstItem, unProcessed] = beginPoint(state, flatten);
     const deltaList = [];
-    let beforeGameId = state.gameId;
+    let before = {
+        gameId: firstItem.gameId,
+        timestamp: getTimestamp(firstItem.time)
+    };
     for (const i of unProcessed.slice(1)){
         if (!i.detail.bankaraMatch) {
             throw new TypeError("bankaraMatch must be defined");
         }
         let delta = {
-            beforeGameId,
+            before,
             gameId: i.gameId,
-            timestamp: Math.floor(i.time.getTime() / 1000),
+            timestamp: getTimestamp(i.time),
             rankPoint: 0,
             isPromotion: false,
             isRankUp: false,
             isChallengeFirst: false
         };
-        beforeGameId = i.gameId;
+        before = {
+            gameId: i.gameId,
+            timestamp: Math.floor(i.time.getTime() / 1000)
+        };
         if (i.bankaraMatchChallenge) {
             if (i.index === 0 && i.bankaraMatchChallenge.state !== "INPROGRESS") {
                 delta = {
                     ...delta,
+                    rank: i.detail.udemae,
                     rankAfter: i.bankaraMatchChallenge.udemaeAfter ?? undefined,
                     rankPoint: i.bankaraMatchChallenge.earnedUdemaePoint ?? 0,
                     isPromotion: i.bankaraMatchChallenge.isPromo ?? false,
@@ -6611,57 +6838,51 @@ function generateDeltaList(state, flatten) {
         }
         deltaList.push(delta);
     }
-    return deltaList;
+    return {
+        firstItem,
+        deltaList
+    };
 }
-function getRankState(i) {
-    const rank = i.detail.udemae;
-    if (!rank) {
-        throw new Error("rank must be defined");
+function getRankStateByDelta(i) {
+    const rank = i.rank;
+    const nextRank = i.rankAfter;
+    const earnedUdemaePoint = i.rankPoint;
+    if (!rank || !nextRank) {
+        throw new Error("rank and nextRank must be defined");
     }
     const param = RANK_PARAMS.find((i)=>i.rank === rank);
-    if (!param) {
-        throw new Error(`Rank not found: ${rank}`);
+    const nextParam = RANK_PARAMS.find((i)=>i.rank === nextRank);
+    if (!param || !nextParam) {
+        throw new Error(`Rank or nextRank not found: ${rank} ${nextRank}`);
     }
+    const oldRankPoint = nextParam.pointRange[0] - earnedUdemaePoint;
     return {
-        gameId: i.gameId,
-        timestamp: Math.floor(i.time.getTime() / 1000),
+        gameId: i.before.gameId,
+        timestamp: i.before.timestamp,
         rank,
-        rankPoint: -1
+        rankPoint: oldRankPoint
     };
 }
 class RankTracker {
+    state;
     deltaMap;
+    stateMap;
     constructor(state){
         this.state = state;
         this.deltaMap = new Map();
+        this.stateMap = new Map();
     }
     async getRankStateById(id) {
-        if (!this.state) {
-            return;
-        }
         const gid = await gameId(id);
-        let cur = this.state;
-        let before = cur;
-        if (cur.gameId === gid) {
-            return;
-        }
-        while(cur.gameId !== gid){
-            const delta = this.deltaMap.get(cur.gameId);
-            if (!delta) {
-                return;
-            }
-            before = cur;
-            cur = addRank(cur, delta);
-        }
-        return {
-            before,
-            after: cur
-        };
+        return this.stateMap.get(gid);
     }
     setState(state) {
         this.state = state;
     }
     async updateState(history) {
+        if (history.length === 0) {
+            return;
+        }
         const flatten = await Promise.all(history.flatMap(({ historyDetails , bankaraMatchChallenge  })=>{
             return historyDetails.nodes.map((j, index)=>({
                     id: j.id,
@@ -6676,41 +6897,21 @@ class RankTracker {
                     ...i,
                     gameId
                 }))));
-        const gameIdTime = new Map(flatten.map((i)=>[
-                i.gameId,
-                i.time
-            ]));
-        let curState;
-        const oldestPromotion = flatten.find((i)=>i.bankaraMatchChallenge?.isPromo && i.bankaraMatchChallenge.isUdemaeUp);
-        const thisStateTime = gameIdTime.get(this.state?.gameId);
-        if (!thisStateTime && !oldestPromotion) {
-            return;
-        } else if (thisStateTime && !oldestPromotion) {
-            curState = this.state;
-        } else if (!thisStateTime && oldestPromotion) {
-            curState = getRankState(oldestPromotion);
-        } else if (thisStateTime && oldestPromotion) {
-            if (thisStateTime <= oldestPromotion.time) {
-                curState = this.state;
-            } else {
-                curState = getRankState(oldestPromotion);
-            }
-        }
-        if (!curState) {
-            return;
-        }
-        this.state = curState;
-        const deltaList = generateDeltaList(curState, flatten);
-        if (!deltaList) {
+        let curState = this.state;
+        const { firstItem , deltaList  } = generateDeltaList(curState, flatten);
+        if (curState && firstItem.gameId !== curState.gameId) {
             return;
         }
         for (const delta of deltaList){
-            this.deltaMap.set(delta.beforeGameId, delta);
-            curState = addRank(curState, delta);
+            this.deltaMap.set(delta.before.gameId, delta);
+            const result = addRank(curState, delta);
+            curState = result?.after;
+            if (result) {
+                this.stateMap.set(result.after.gameId, result);
+            }
         }
         return curState;
     }
-    state;
 }
 class GameFetcher {
     _splatnet;
@@ -6917,6 +7118,7 @@ const DEFAULT_OPTS = {
     noProgress: false,
     monitor: false,
     withSummary: false,
+    listMethod: "auto",
     env: DEFAULT_ENV
 };
 class StepProgress {
@@ -6932,6 +7134,89 @@ class StepProgress {
         this.skipped = {};
     }
 }
+class BattleListFetcher {
+    splatnet;
+    listMethod;
+    allBattleList;
+    latestBattleList;
+    allLock;
+    latestLock;
+    constructor(listMethod, splatnet){
+        this.splatnet = splatnet;
+        this.allLock = new Mutex();
+        this.latestLock = new Mutex();
+        if (listMethod === "all") {
+            this.listMethod = "all";
+        } else if (listMethod === "latest") {
+            this.listMethod = "latest";
+        } else {
+            this.listMethod = "auto";
+        }
+    }
+    getAllBattleList() {
+        return this.allLock.use(async ()=>{
+            if (!this.allBattleList) {
+                this.allBattleList = await this.splatnet.getAllBattleList();
+            }
+            return this.allBattleList;
+        });
+    }
+    getLatestBattleList() {
+        return this.latestLock.use(async ()=>{
+            if (!this.latestBattleList) {
+                this.latestBattleList = await this.splatnet.getBattleList();
+            }
+            return this.latestBattleList;
+        });
+    }
+    async innerFetch(exporter) {
+        if (this.listMethod === "latest") {
+            return await exporter.notExported({
+                type: "VsInfo",
+                list: await this.getLatestBattleList()
+            });
+        }
+        if (this.listMethod === "all") {
+            return await exporter.notExported({
+                type: "VsInfo",
+                list: await this.getAllBattleList()
+            });
+        }
+        if (this.listMethod === "auto") {
+            const latestList = await exporter.notExported({
+                type: "VsInfo",
+                list: await this.getLatestBattleList()
+            });
+            if (latestList.length === 50) {
+                return await exporter.notExported({
+                    type: "VsInfo",
+                    list: await this.getAllBattleList()
+                });
+            }
+            return latestList;
+        }
+        throw new TypeError(`Unknown listMethod: ${this.listMethod}`);
+    }
+    async fetch(exporter) {
+        return [
+            ...await this.innerFetch(exporter)
+        ].reverse();
+    }
+}
+class CoopListFetcher {
+    splatnet;
+    constructor(splatnet){
+        this.splatnet = splatnet;
+    }
+    async fetch(exporter) {
+        return [
+            ...await exporter.notExported({
+                type: "CoopInfo",
+                list: await this.splatnet.getBattleList(BattleListType.Coop)
+            })
+        ].reverse();
+    }
+}
 function progress({ total , currentUrl , done  }) {
     return {
         total,
@@ -6940,6 +7225,7 @@ function progress({ total , currentUrl , done  }) {
     };
 }
 class App {
+    opts;
     profile;
     env;
     constructor(opts){
@@ -6950,6 +7236,13 @@ class App {
             env: opts.env
         });
         this.env = opts.env;
+        if (opts.listMethod && ![
+            "all",
+            "auto",
+            "latest"
+        ].includes(opts.listMethod)) {
+            throw new TypeError(`Unknown listMethod: ${opts.listMethod}`);
+        }
     }
     getSkipMode() {
         const mode = this.opts.skipMode;
@@ -7033,8 +7326,7 @@ class App {
         if (skipMode.includes("vs") || exporters.length === 0) {
             this.env.logger.log("Skip exporting VS games.");
         } else {
-            this.env.logger.log("Fetching battle list...");
-            const gameList = await splatnet.getBattleList();
+            const gameListFetcher = new BattleListFetcher(this.opts.listMethod ?? "auto", splatnet);
             const { redraw , endBar  } = this.exporterProgress("Export vs games");
             const fetcher = new GameFetcher({
                 cache: this.opts.cache ?? new FileCache(this.profile.state.cacheDir),
@@ -7046,7 +7338,7 @@ class App {
                     type: "VsInfo",
                     fetcher,
                     exporter: e,
-                    gameList,
+                    gameListFetcher,
                     stepProgress: stats[e.name],
                     onStep: ()=>{
                         redraw(e.name, progress(stats[e.name]));
@@ -7070,28 +7362,27 @@ class App {
         if (skipMode.includes("coop") || exporters.length === 0) {
             this.env.logger.log("Skip exporting coop games.");
         } else {
-            this.env.logger.log("Fetching coop battle list...");
-            const coopBattleList = await splatnet.getBattleList(BattleListType.Coop);
-            const { redraw: redraw1 , endBar: endBar1  } = this.exporterProgress("Export coop games");
-            const fetcher1 = new GameFetcher({
+            const gameListFetcher = new CoopListFetcher(splatnet);
+            const { redraw , endBar  } = this.exporterProgress("Export coop games");
+            const fetcher = new GameFetcher({
                 cache: this.opts.cache ?? new FileCache(this.profile.state.cacheDir),
                 state: this.profile.state,
                 splatnet
             });
             await Promise.all(exporters.map((e)=>showError(this.env, this.exportGameList({
                     type: "CoopInfo",
-                    fetcher: fetcher1,
+                    fetcher,
                     exporter: e,
-                    gameList: coopBattleList,
+                    gameListFetcher,
                     stepProgress: stats[e.name],
                     onStep: ()=>{
-                        redraw1(e.name, progress(stats[e.name]));
+                        redraw(e.name, progress(stats[e.name]));
                     }
                 })).catch((err)=>{
                     errors.push(err);
                     this.env.logger.error(`\nFailed to export to ${e.name}:`, err);
                 })));
-            endBar1();
+            endBar();
             this.printStats(stats);
             if (errors.length > 0) {
                 throw errors[0];
@@ -7158,14 +7449,9 @@ class App {
             await this.exportOnce();
         }
     }
-    async exportGameList({ type , fetcher , exporter , gameList , stepProgress , onStep  }) {
+    async exportGameList({ type , fetcher , exporter , gameListFetcher , stepProgress , onStep  }) {
         onStep?.();
-        const workQueue = [
-            ...await exporter.notExported({
-                type,
-                list: gameList
-            })
-        ].reverse();
+        const workQueue = await gameListFetcher.fetch(exporter);
         const step = async (id)=>{
             const detail = await fetcher.fetch(type, id);
             const result = await exporter.exportGame(detail);
@@ -7198,14 +7484,14 @@ class App {
             this.env.logger.log(`Skipped ${Object.entries(stats).map(([name, { skipped  }])=>Object.entries(skipped).map(([reason, count])=>`${name}: ${reason} (${count})`).join(", "))}`);
         }
     }
-    opts;
 }
 const parseArgs = (args)=>{
     const parsed = mod1.parse(args, {
         string: [
             "profilePath",
             "exporter",
-            "skipMode"
+            "skipMode",
+            "listMethod"
         ],
         boolean: [
             "help",
@@ -7233,7 +7519,8 @@ const parseArgs = (args)=>{
                 "s",
                 "skip-mode"
             ],
-            "withSummary": "with-summary"
+            "withSummary": "with-summary",
+            "listMethod": "list-method"
         }
     });
     return parsed;
@@ -7247,6 +7534,10 @@ Options:
     --exporter <exporter>, -e    Exporter list to use (default: stat.ink)
                                  Multiple exporters can be separated by commas
                                  (e.g. "stat.ink,file")
+    --list-method                When set to "latest", the latest 50 matches will be obtained.
+                                 When set to "all", matches of all modes will be obtained with a maximum of 250 matches (5 modes x 50 matches).
+                                 When set to "auto", the latest 50 matches will be obtained. If 50 matches have not been uploaded yet, matches will be obtained from the list of all modes.
+                                 "auto" is the default setting.
     --no-progress, -n            Disable progress bar
     --monitor, -m                Monitor mode
     --skip-mode <mode>, -s       Skip mode (default: null)
